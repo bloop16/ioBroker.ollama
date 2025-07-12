@@ -2,6 +2,7 @@
 
 const utils = require("@iobroker/adapter-core");
 const { QdrantClient } = require("@qdrant/qdrant-js");
+const { handleEmbedding } = require("./lib/embedding");
 
 class ollama extends utils.Adapter {
 
@@ -148,6 +149,17 @@ class ollama extends utils.Adapter {
 
 	async onStateChange(id, state) {
 		if (!state) return;
+		// Trigger embedding storage on any state change when vector DB enabled
+        if (this.config.useVectorDb) {
+            // call embedding handler asynchronously
+            handleEmbedding({
+                value: state.val,
+                id,
+                config: {}, // custom datapoint config if available
+                qdrantConfig: { enabled: true, ip: this.config.vectorDbIp, port: this.config.vectorDbPort },
+                logger: this.log
+            });
+        }
 		// Trigger on user message content input
 		if (id.startsWith(`${this.namespace}.models.`) && id.endsWith(`.messages.content`) && state.val && !state.ack) {
 			const parts = id.split(".");
