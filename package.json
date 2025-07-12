@@ -1,6 +1,6 @@
 {
   "name": "iobroker.ollama",
-  "version": "v0.0.3",
+  "version": "0.0.3",
   "description": "Adapter to train Ollama Model with Datapoints",
   "author": {
     "name": "bloop16",
