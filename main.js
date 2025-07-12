@@ -1,6 +1,7 @@
 "use strict";
 
 const utils = require("@iobroker/adapter-core");
+const { QdrantClient } = require("@qdrant/qdrant-js");
 
 class ollama extends utils.Adapter {
 
@@ -52,6 +53,24 @@ class ollama extends utils.Adapter {
 		this.log.info("Ollama Server Port: " + this.config.ollamaPort);
 
 		await this.ensureInfoStates();
+		// If Qdrant database is enabled, verify availability before proceeding
+		if (this.config.useVectorDb) {
+			const dbIp = this.config.vectorDbIp;
+			const dbPort = this.config.vectorDbPort;
+			// use qdrant-js client for health check
+			const client = new QdrantClient({ url: `http://${dbIp}:${dbPort}` });
+			this.log.info(`Checking Vector DB availability via Qdrant client at ${dbIp}:${dbPort}`);
+			try {
+				// perform a simple operation via qdrant-js client to verify connectivity
+				// simple call to fetch collections to verify connectivity
+				await client.getCollections();
+				this.log.info('Vector DB is available');
+			} catch (err) {
+				this.log.error(`Error connecting to Vector DB: ${err}`);
+				await this.setConnected(false);
+				return;
+			}
+		}
 
 		// Subscribe to all states
 		this.subscribeStates("*");

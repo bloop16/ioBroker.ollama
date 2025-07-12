@@ -1,42 +1,90 @@
 {
-	"i18n": true,
-	"type": "panel",
-	"items": {
+  "i18n": true,
+  "type": "tabs",
+  "items": {
+	"Ollama": {
+	  "type": "panel",
+	  "label": "Ollama",
+	  "items": {
 		"ollamaIp": {
-			"type": "text",
-			"label": "Ollama Server IP",
-			"xs": 12,
-			"sm":12,
-			"md": 6,
-			"lg": 6,
-			"xl": 6,
-			"placeholder": "192.168.0.204",
-			"help": "IP address of the Ollama server.",
-			"newLine": true
+		  "type": "text",
+		  "label": "Ollama Server IP",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "placeholder": "192.168.0.204",
+		  "help": "IP address of the Ollama server.",
+		  "newLine": true
 		},
 		"ollamaPort": {
-			"type": "number",
-			"label": "Ollama Server Port",
-			"xs": 12,
-			"sm": 12,
-			"md": 6,
-			"lg": 6,
-			"xl": 6,
-			"help": "Port of the Ollama server.",
-			"placeholder": "11434",
-			"newLine": true
+		  "type": "number",
+		  "label": "Ollama Server Port",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "help": "Port of the Ollama server.",
+		  "placeholder": "11434",
+		  "newLine": true
 		},
 		"checkOllamaModelRunning": {
-			"type": "number",
-			"label": "Check if Ollama model is running",
-			"xs": 12,
-			"sm": 10,
-			"md": 4,
-			"lg": 4,
-			"xl": 4,
-			"default": 60000,
-			"help": "Timer to check if the Ollama model is running. Set to 0 to disable.",
-				"placeholder": "60000"
+		  "type": "number",
+		  "label": "Check if Ollama model is running",
+		  "xs": 12,
+		  "sm": 10,
+		  "md": 4,
+		  "lg": 4,
+		  "xl": 4,
+		  "default": 60000,
+		  "help": "Timer to check if the Ollama model is running. Set to 0 to disable.",
+		  "placeholder": "60000"
 		}
+	  }
+	},
+	"Database": {
+	  "type": "panel",
+	  "label": "Database",
+	  "items": {
+		"useVectorDb": {
+		  "type": "checkbox",
+		  "label": "Use Qdrant",
+		  "default": false,
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "help": "Use Qdrant as vector database for Ollama.",
+		  "newLine": true
+		},
+		"vectorDbIp": {
+		  "type": "text",
+		  "label": "Qdrant Server IP",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "127.0.0.1",
+		  "help": "IP address of the Qdrant server.",
+		  "newLine": true
+		},
+		"vectorDbPort": {
+		  "type": "number",
+		  "label": "Qdrant Server Port",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "help": "Port of the Qdrant server.",
+		  "default": "6333",
+		  "newLine": true
+		}
+	  }
 	}
+  }
 }

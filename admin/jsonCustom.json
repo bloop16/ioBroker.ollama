@@ -10,20 +10,26 @@
         { "label": "Number", "value": "number" },
         { "label": "Text", "value": "text" }
       ],
-      "help": "Select the data type for this datapoint",
+      "help": "Select the data type for this datapoint.",
       "default": "text"
+    },
+    "embeddingEnabled": {
+      "type": "checkbox",
+      "label": "Enable embedding for this datapoint",
+      "default": false,
+      "help": "If enabled, this datapoint will be included in vector embedding (Qdrant)."
     },
     "description": {
       "type": "text",
       "label": "Description",
       "default": "",
-      "tooltip": "Description of the datapoint"
+      "tooltip": "Description of the datapoint."
     },
     "location": {
       "type": "text",
       "label": "Location",
       "default": "",
-      "tooltip": "Location of the datapoint"
+      "tooltip": "Location of the datapoint."
     },
     "units": {
       "type": "text",
@@ -35,21 +41,21 @@
       "type": "text",
       "label": "Value for TRUE (Boolean)",
       "default": "true",
-      "tooltip": "Value used for TRUE",
+      "tooltip": "Value used for TRUE.",
       "hidden": "data.dataType !== 'boolean'"
     },
     "booleanFalseValue": {
       "type": "text",
       "label": "Value for FALSE (Boolean)",
       "default": "false",
-      "tooltip": "Value used for FALSE",
+      "tooltip": "Value used for FALSE.",
       "hidden": "data.dataType !== 'boolean'"
     },
     "additionalText": {
       "type": "text",
       "label": "Additional text",
       "default": "",
-      "tooltip": "Additional text for text type",
+      "tooltip": "Additional text for text type.",
       "hidden": "data.dataType !== 'text'"
     }
   }
