@@ -58,6 +58,10 @@ The ioBroker Ollama adapter enables communication with an Ollama server and allo
 
 ## Changelog
 
+### 0.0.3
+* Ready for first public release
+* All compliance warnings fixed
+
 ### 0.0.2
 * Fixed: [W508] attribute "xs" for number should specify a value of "12" at admin/jsonConfig.json/items/checkOllamaModelRunning
 * Fixed: [W156] admin 7.0.23 listed as dependency but 7.4.10 is recommended. Updated globalDependency in io-package.json
