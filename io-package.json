@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.0.1",
+        "version": "0.0.2",
         "news": {
+            "0.0.2": {
+                "en": "Various compliance and repository warnings fixed (see README changelog)",
+                "de": "Diverse Compliance- und Repository-Warnungen behoben (siehe README Changelog)",
+                "ru": "Исправлены различные предупреждения о соответствии и репозитории (см. список изменений в README)",
+                "pt": "Vários avisos de conformidade e repositório corrigidos (veja o changelog do README)",
+                "nl": "Diverse compliance- en repository-waarschuwingen opgelost (zie README changelog)",
+                "fr": "Divers avertissements de conformité et de dépôt corrigés (voir le changelog du README)",
+                "it": "Risolti vari avvisi di conformità e repository (vedi changelog README)",
+                "es": "Se corrigieron varias advertencias de cumplimiento y repositorio (ver el registro de cambios en README)",
+                "pl": "Naprawiono różne ostrzeżenia dotyczące zgodności i repozytorium (patrz changelog README)",
+                "uk": "Виправлено різні попередження щодо відповідності та репозиторію (див. список змін у README)",
+                "zh-cn": "修复了各种合规性和存储库警告（请参阅README更改日志）"
+            },
             "0.0.1": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
@@ -47,9 +60,9 @@
             "bloop16 <bloop16@hotmail.com>"
         ],
         "keywords": [
-            "ioBroker",
+            "ollama",
+            "ai",
             "template",
-            "Smart Home",
             "home automation"
         ],
         "licenseInformation": {
@@ -58,8 +71,7 @@
         },
         "platform": "Javascript/Node.js",
         "icon": "ollama.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.send2ollama/main/admin/send2ollama.png",
+        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.ollama/main/admin/ollama.png",
         "readme": "https://github.com/bloop16/ioBroker.send2ollama/blob/main/README.md",
         "loglevel": "info",
         "tier": 3,
@@ -74,12 +86,12 @@
         "supportCustoms": true,
         "dependencies": [
             {
-                "js-controller": ">=5.0.0"
+                "js-controller": ">=5.0.19"
             }
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.0.23"
+                "admin": ">=7.4.10"
             }
         ]
     },

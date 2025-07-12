@@ -29,7 +29,7 @@
 		"checkOllamaModelRunning": {
 			"type": "number",
 			"label": "Check if Ollama model is running",
-			"xs": 10,
+			"xs": 12,
 			"sm": 10,
 			"md": 4,
 			"lg": 4,
