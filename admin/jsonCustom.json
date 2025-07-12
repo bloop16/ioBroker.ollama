@@ -1,0 +1,56 @@
+{
+  "i18n": true,
+  "type": "panel",
+  "items": {
+    "dataType": {
+      "type": "select",
+      "label": "Data type",
+      "options": [
+        { "label": "Boolean", "value": "boolean" },
+        { "label": "Number", "value": "number" },
+        { "label": "Text", "value": "text" }
+      ],
+      "help": "Select the data type for this datapoint",
+      "default": "text"
+    },
+    "description": {
+      "type": "text",
+      "label": "Description",
+      "default": "",
+      "tooltip": "Description of the datapoint"
+    },
+    "location": {
+      "type": "text",
+      "label": "Location",
+      "default": "",
+      "tooltip": "Location of the datapoint"
+    },
+    "units": {
+      "type": "text",
+      "label": "Units",
+      "tooltip": "Unit of the value (e.g. °C, %, etc.)",
+      "hidden": "data.dataType !== 'number'"
+    },
+    "booleanTrueValue": {
+      "type": "text",
+      "label": "Value for TRUE (Boolean)",
+      "default": "true",
+      "tooltip": "Value used for TRUE",
+      "hidden": "data.dataType !== 'boolean'"
+    },
+    "booleanFalseValue": {
+      "type": "text",
+      "label": "Value for FALSE (Boolean)",
+      "default": "false",
+      "tooltip": "Value used for FALSE",
+      "hidden": "data.dataType !== 'boolean'"
+    },
+    "additionalText": {
+      "type": "text",
+      "label": "Additional text",
+      "default": "",
+      "tooltip": "Additional text for text type",
+      "hidden": "data.dataType !== 'text'"
+    }
+  }
+}

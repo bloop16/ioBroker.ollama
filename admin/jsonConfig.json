@@ -1,0 +1,42 @@
+{
+	"i18n": true,
+	"type": "panel",
+	"items": {
+		"ollamaIp": {
+			"type": "text",
+			"label": "Ollama Server IP",
+			"xs": 12,
+			"sm":12,
+			"md": 6,
+			"lg": 6,
+			"xl": 6,
+			"placeholder": "192.168.0.204",
+			"help": "IP address of the Ollama server.",
+			"newLine": true
+		},
+		"ollamaPort": {
+			"type": "number",
+			"label": "Ollama Server Port",
+			"xs": 12,
+			"sm": 12,
+			"md": 6,
+			"lg": 6,
+			"xl": 6,
+			"help": "Port of the Ollama server.",
+			"placeholder": "11434",
+			"newLine": true
+		},
+		"checkOllamaModelRunning": {
+			"type": "number",
+			"label": "Check if Ollama model is running",
+			"xs": 10,
+			"sm": 10,
+			"md": 4,
+			"lg": 4,
+			"xl": 4,
+			"default": 60000,
+			"help": "Timer to check if the Ollama model is running. Set to 0 to disable.",
+				"placeholder": "60000"
+		}
+	}
+}

@@ -1,0 +1,93 @@
+{
+    "common": {
+        "name": "ollama",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "uk": "Початкова версія",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "Ollama",
+            "de": "Ollama",
+            "ru": "Оллама",
+            "pt": "Ollama",
+            "nl": "Ollama",
+            "fr": "Ollama",
+            "it": "Ollama",
+            "es": "Ollama",
+            "pl": "Ollama",
+            "uk": "Оллама",
+            "zh-cn": "Ollama"
+        },
+        "desc": {
+            "en": "Ai, ollama",
+            "de": "Ai, Ollama",
+            "ru": "Ай, Оллама",
+            "pt": "Ai, Ollama",
+            "nl": "AI, Ollama",
+            "fr": "AI, Olllama",
+            "it": "AI, Ollama",
+            "es": "Ai, ollama",
+            "pl": "Ai, Ollama",
+            "uk": "AI, Ollama",
+            "zh-cn": "AI，Ollama"
+        },
+        "authors": [
+            "bloop16 <bloop16@hotmail.com>"
+        ],
+        "keywords": [
+            "ioBroker",
+            "template",
+            "Smart Home",
+            "home automation"
+        ],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "ollama.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.send2ollama/main/admin/send2ollama.png",
+        "readme": "https://github.com/bloop16/ioBroker.send2ollama/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "communication",
+        "compact": true,
+        "connectionType": "local",
+        "dataSource": "poll",
+        "adminUI": {
+            "config": "json"
+        },
+        "supportCustoms": true,
+        "dependencies": [
+            {
+                "js-controller": ">=5.0.0"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "ollamaIp": "127.0.0.1",
+        "ollamaPort": 11434,
+        "checkOllamaModelRunning": 60000
+    },
+    "objects": [],
+    "instanceObjects": []
+}
