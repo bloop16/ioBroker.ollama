@@ -58,6 +58,19 @@ The ioBroker Ollama adapter enables communication with an Ollama server and allo
 
 ## Changelog
 
+### 0.0.3
+* Ready for first public release
+* All compliance warnings fixed
+
+### 0.0.2
+* Fixed: [W508] attribute "xs" for number should specify a value of "12" at admin/jsonConfig.json/items/checkOllamaModelRunning
+* Fixed: [W156] admin 7.0.23 listed as dependency but 7.4.10 is recommended. Updated globalDependency in io-package.json
+* Fixed: [W168] "common.keywords" should not contain "iobroker, adapter, smart home" in io-package.json
+* Fixed: [W040] "keywords" within package.json should contain "ioBroker"
+* Fixed: [E802] No topics found in the repository. Added topics in GitHub repository settings
+* Fixed: [E157] js-controller 5.0.0 listed as dependency but 5.0.19 is required as minimum. Updated dependency in io-package.json
+* Fixed: [E112] extIcon must be the same as icon but with github path in io-package.json
+
 ### 0.0.1
 * Automatic detection and creation of all Ollama models as channels and states
 * Send messages and configuration parameters to Ollama models

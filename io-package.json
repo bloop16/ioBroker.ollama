@@ -1,8 +1,34 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.0.1",
+        "version": "0.0.3",
         "news": {
+            "0.0.3": {
+                "en": "Ready for first public release. All compliance warnings fixed. Stable features: Ollama model detection, chat API, state mapping, multi-language, status monitoring.",
+                "de": "Bereit für den ersten öffentlichen Release. Alle Compliance-Warnungen behoben. Stabile Features: Ollama-Modellerkennung, Chat-API, State-Mapping, Mehrsprachigkeit, Statusüberwachung.",
+                "ru": "Готово к первому публичному релизу. Все предупреждения о соответствии исправлены. Стабильные функции: обнаружение моделей Ollama, чат API, сопоставление состояний, многоязычность, мониторинг статуса.",
+                "pt": "Pronto para o primeiro lançamento público. Todos os avisos de conformidade corrigidos. Recursos estáveis: detecção de modelo Ollama, API de chat, mapeamento de estados, multilíngue, monitoramento de status.",
+                "nl": "Klaar voor eerste publieke release. Alle compliance-waarschuwingen opgelost. Stabiele functies: Ollama-modeldetectie, chat-API, staat-mapping, meertaligheid, statusmonitoring.",
+                "fr": "Prêt pour la première version publique. Tous les avertissements de conformité corrigés. Fonctionnalités stables : détection de modèle Ollama, API de chat, mappage des états, multilingue, surveillance du statut.",
+                "it": "Pronto per il primo rilascio pubblico. Tutti gli avvisi di conformità risolti. Funzionalità stabili: rilevamento modelli Ollama, API chat, mapping degli stati, multilingua, monitoraggio stato.",
+                "es": "Listo para el primer lanzamiento público. Todas las advertencias de cumplimiento corregidas. Funciones estables: detección de modelos Ollama, API de chat, mapeo de estados, multilingüe, monitoreo de estado.",
+                "pl": "Gotowy do pierwszego publicznego wydania. Wszystkie ostrzeżenia dotyczące zgodności zostały naprawione. Stabilne funkcje: wykrywanie modeli Ollama, API czatu, mapowanie stanów, wielojęzyczność, monitorowanie statusu.",
+                "uk": "Готово до першого публічного релізу. Всі попередження про відповідність виправлені. Стабільні функції: виявлення моделей Ollama, чат API, зіставлення станів, багатомовність, моніторинг статусу.",
+                "zh-cn": "准备首次公开发布。所有合规警告均已修复。稳定功能：Ollama模型检测、聊天API、状态映射、多语言、状态监控。"
+            },
+            "0.0.2": {
+                "en": "Various compliance and repository warnings fixed (see README changelog)",
+                "de": "Diverse Compliance- und Repository-Warnungen behoben (siehe README Changelog)",
+                "ru": "Исправлены различные предупреждения о соответствии и репозитории (см. список изменений в README)",
+                "pt": "Vários avisos de conformidade e repositório corrigidos (veja o changelog do README)",
+                "nl": "Diverse compliance- en repository-waarschuwingen opgelost (zie README changelog)",
+                "fr": "Divers avertissements de conformité et e dépôt corrigés (voir le changelog du README)",
+                "it": "Risolti vari avvisi di conformità e repository (vedi changelog README)",
+                "es": "Se corrigieron varias advertencias de cumplimiento e repositorio (ver el registro de cambios en README)",
+                "pl": "Naprawiono różne ostrzeżenia dotyczące zgodności i repozytorium (patrz changelog README)",
+                "uk": "Виправлено різні попередження щодо відповідності та репозиторію (див. список змін у README)",
+                "zh-cn": "修复了各种合规性和存储库警告（请参阅README更改日志）"
+            },
             "0.0.1": {
                 "en": "initial release",
                 "de": "Erstveröffentlichung",
@@ -47,9 +73,9 @@
             "bloop16 <bloop16@hotmail.com>"
         ],
         "keywords": [
-            "ioBroker",
+            "ollama",
+            "ai",
             "template",
-            "Smart Home",
             "home automation"
         ],
         "licenseInformation": {
@@ -58,8 +84,7 @@
         },
         "platform": "Javascript/Node.js",
         "icon": "ollama.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.send2ollama/main/admin/send2ollama.png",
+        "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.ollama/main/admin/ollama.png",
         "readme": "https://github.com/bloop16/ioBroker.send2ollama/blob/main/README.md",
         "loglevel": "info",
         "tier": 3,
@@ -74,12 +99,12 @@
         "supportCustoms": true,
         "dependencies": [
             {
-                "js-controller": ">=5.0.0"
+                "js-controller": ">=5.0.19"
             }
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.0.23"
+                "admin": ">=7.4.10"
             }
         ]
     },
