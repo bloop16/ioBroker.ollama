@@ -93,7 +93,7 @@ class ollama extends utils.Adapter {
 					await this.setObjectNotExistsAsync(`models.${modelId}.think`, { type: "state", common: { name: this.translate("Think"), type: "boolean", role: "state", read: true, write: true, def: false }, native: {} });
 					await this.setObjectNotExistsAsync(`models.${modelId}.tools`, { type: "state", common: { name: this.translate("Tools (JSON)"), type: "string", role: "state", read: true, write: true, def: "[]" }, native: {} });
 					await this.setObjectNotExistsAsync(`models.${modelId}.keep_alive`, { type: "state", common: { name: this.translate("Keep Alive"), type: "string", role: "state", read: true, write: true, def: "5m" }, native: {} });
-					await this.setObjectNotExistsAsync(`models.${modelId}.format`, { type: "state", common: { name: this.translate("Format ('json' or JSON object)"), type: "string", role: "state", read: true, write: true, def: "json" }, native: {} });
+					await this.setObjectNotExistsAsync(`models.${modelId}.format`, { type: "state", common: { name: this.translate("Format ('json' or JSON object)"), type: "string", role: "state", read: true, write: true, def: "" }, native: {} });
 					await this.setObjectNotExistsAsync(`models.${modelId}.options`, { type: "state", common: { name: this.translate("Options (JSON)"), type: "string", role: "state", read: true, write: true, def: "{}" }, native: {} });
 
 					// Create response details channel and states
@@ -231,8 +231,8 @@ class ollama extends utils.Adapter {
 					eval_duration: resp.data.eval_duration
 				};
 				for (const [key, value] of Object.entries(details)) {
-					await this.setObjectNotExistsAsync(`${detailsPath}.${key}`, { type: "state", common: { name: key, type: typeof value === "number" ? "number" : "string", role: "state", read: true, write: false }, native: {} });
-					await this.setState(`${detailsPath}.${key}`, value ?? "", true);
+					await this.setObjectNotExistsAsync(`${detailsPath}.${key}`, { type: "state", common: { name: key, type: "string", role: "state", read: true, write: false }, native: {} });
+					await this.setState(`${detailsPath}.${key}`, value !== undefined && value !== null ? String(value) : "", true);
 				}
 			} catch (e) {
 				this.log.error(`Error generating response for model ${modelId}: ${e}`);
