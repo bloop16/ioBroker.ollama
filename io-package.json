@@ -108,14 +108,14 @@
             }
         ]
     },
-  "native": {
-    "ollamaIp": "127.0.0.1",
-    "ollamaPort": 11434,
-    "checkOllamaModelRunning": 60000,
-    "useVectorDb": false,
-    "vectorDbIp": "127.0.0.1",
-    "vectorDbPort": 6333
-  },
+    "native": {
+        "ollamaIp": "127.0.0.1",
+        "ollamaPort": 11434,
+        "checkOllamaModelRunning": 60000,
+        "useVectorDb": false,
+        "vectorDbIp": "127.0.0.1",
+        "vectorDbPort": 6333
+    },
     "objects": [],
     "instanceObjects": []
 }

@@ -38,5 +38,11 @@
     "Data type": "Tipo de datos",
     "Select the data type for this datapoint": "Seleccione el tipo de datos para este punto de datos",
     "Additional text": "Texto adicional",
-    "Additional text for text type": "Texto adicional para el tipo de texto"
+    "Additional text for text type": "Texto adicional para el tipo de texto",
+    "Use Qdrant": "Usar qdrant",
+    "Qdrant Server IP": "IP del servidor Qdrant",
+    "Qdrant Server Port": "Puerto de servidor Qdrant",
+    "Database": "Base de datos",
+    "Enable embedding for this datapoint": "Habilitar la incrustación para este punto de datos",
+    "If enabled, this datapoint will be included in vector embedding (Qdrant).": "Si está habilitado, este punto de datos se incluirá en la incrustación de vectores (QDRANT)."
 }

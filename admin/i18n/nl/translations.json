@@ -38,5 +38,11 @@
     "Data type": "Gegevenstype",
     "Select the data type for this datapoint": "Selecteer het gegevenstype voor dit datapunt",
     "Additional text": "Aanvullende tekst",
-    "Additional text for text type": "Extra tekst voor teksttype"
+    "Additional text for text type": "Extra tekst voor teksttype",
+    "Use Qdrant": "Gebruik Qdrant",
+    "Qdrant Server IP": "Qdrant server ip",
+    "Qdrant Server Port": "Qdrant -serverpoort",
+    "Database": "Database",
+    "Enable embedding for this datapoint": "Schakel inbedden in voor dit datapunt",
+    "If enabled, this datapoint will be included in vector embedding (Qdrant).": "Indien ingeschakeld, wordt dit Datapoint opgenomen in vector -inbedding (Qdrant)."
 }

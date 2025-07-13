@@ -38,5 +38,11 @@
     "Data type": "数据类型",
     "Select the data type for this datapoint": "选择此数据点的数据类型",
     "Additional text": "附加文字",
-    "Additional text for text type": "文本类型的其他文本"
+    "Additional text for text type": "文本类型的其他文本",
+    "Use Qdrant": "使用QDRANT",
+    "Qdrant Server IP": "QDRANT服务器IP",
+    "Qdrant Server Port": "QDRANT服务器端口",
+    "Database": "数据库",
+    "Enable embedding for this datapoint": "启用此数据点的嵌入",
+    "If enabled, this datapoint will be included in vector embedding (Qdrant).": "如果启用，此数据点将包含在向量嵌入（QDRANT）中。"
 }

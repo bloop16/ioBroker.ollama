@@ -38,5 +38,11 @@
     "Data type": "Тип данных",
     "Select the data type for this datapoint": "Выберите тип данных для этого данных",
     "Additional text": "Дополнительный текст",
-    "Additional text for text type": "Дополнительный текст для типа текста"
+    "Additional text for text type": "Дополнительный текст для типа текста",
+    "Use Qdrant": "Используйте Qdrant",
+    "Qdrant Server IP": "Qdrant Server IP",
+    "Qdrant Server Port": "Qdrant Server Port",
+    "Database": "База данных",
+    "Enable embedding for this datapoint": "Включить внедрение для этой даты",
+    "If enabled, this datapoint will be included in vector embedding (Qdrant).": "В случае включения, этот данных будет включен в векторное внедрение (Qdrant)."
 }

@@ -36,5 +36,11 @@
 	"Data type": "Data type",
 	"Select the data type for this datapoint": "Select the data type for this datapoint",
 	"Additional text": "Additional text",
-	"Additional text for text type": "Additional text for text type"
+   "Additional text for text type": "Additional text for text type",
+   "Use Qdrant": "Use Qdrant",
+   "Qdrant Server IP": "Qdrant Server IP",
+   "Qdrant Server Port": "Qdrant Server Port",
+   "Database": "Database",
+   "Enable embedding for this datapoint": "Enable embedding for this datapoint",
+   "If enabled, this datapoint will be included in vector embedding (Qdrant).": "If enabled, this datapoint will be included in vector embedding (Qdrant)."
 }
