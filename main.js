@@ -1,8 +1,7 @@
 "use strict";
 
 const utils = require("@iobroker/adapter-core");
-const { QdrantClient } = require("@qdrant/qdrant-js");
-const { handleEmbedding } = require("./lib/embedding");
+const QdrantHelper = require("./lib/qdrantclient");
 
 class ollama extends utils.Adapter {
 
@@ -34,9 +33,12 @@ class ollama extends utils.Adapter {
 	 * @param {ioBroker.Object | null | undefined} obj
 	 */
 	onObjectChange(id, obj) {
-		this.log.info(`[OBJECT CHANGE] ${id}: ${JSON.stringify(obj)}`);
-		// Add your object change handling logic here
-	}
+		if (obj) {
+			this.log.debug(`Object ${id} changed: ${JSON.stringify(obj)}`);
+		} else {
+			this.log.debug(`Object ${id} deleted`);
+		}
+	}	
 
 	/**
 	 * translates text
@@ -58,16 +60,9 @@ class ollama extends utils.Adapter {
 		if (this.config.useVectorDb) {
 			const dbIp = this.config.vectorDbIp;
 			const dbPort = this.config.vectorDbPort;
-			// use qdrant-js client for health check
-			const client = new QdrantClient({ url: `http://${dbIp}:${dbPort}` });
-			this.log.info(`Checking Vector DB availability via Qdrant client at ${dbIp}:${dbPort}`);
 			try {
-				// perform a simple operation via qdrant-js client to verify connectivity
-				// simple call to fetch collections to verify connectivity
-				await client.getCollections();
-				this.log.info('Vector DB is available');
+				await QdrantHelper.checkAvailability(dbIp, dbPort, this.log);
 			} catch (err) {
-				this.log.error(`Error connecting to Vector DB: ${err}`);
 				await this.setConnected(false);
 				return;
 			}
@@ -149,17 +144,6 @@ class ollama extends utils.Adapter {
 
 	async onStateChange(id, state) {
 		if (!state) return;
-		// Trigger embedding storage on any state change when vector DB enabled
-        if (this.config.useVectorDb) {
-            // call embedding handler asynchronously
-            handleEmbedding({
-                value: state.val,
-                id,
-                config: {}, // custom datapoint config if available
-                qdrantConfig: { enabled: true, ip: this.config.vectorDbIp, port: this.config.vectorDbPort },
-                logger: this.log
-            });
-        }
 		// Trigger on user message content input
 		if (id.startsWith(`${this.namespace}.models.`) && id.endsWith(`.messages.content`) && state.val && !state.ack) {
 			const parts = id.split(".");
