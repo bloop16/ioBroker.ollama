@@ -80,8 +80,8 @@
 		  "md": 6,
 		  "lg": 6,
 		  "xl": 6,
+		  "default": 6333,
 		  "help": "Port of the Qdrant server.",
-		  "default": "6333",
 		  "newLine": true
 		}
 	  }
