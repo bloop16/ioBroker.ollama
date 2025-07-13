@@ -94,7 +94,8 @@
         "connectionType": "local",
         "dataSource": "poll",
         "adminUI": {
-            "config": "json"
+            "config": "json",
+            "custom": "json"
         },
         "supportCustoms": true,
         "dependencies": [
