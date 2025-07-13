@@ -1,7 +1,7 @@
 "use strict";
 
 const utils = require("@iobroker/adapter-core");
-const QdrantHelper = require("./lib/qdrantclient");
+const QdrantHelper = require("./lib/qdrantClient");
 const OllamaClient = require("./lib/ollamaClient");
 
 class ollama extends utils.Adapter {
@@ -72,6 +72,9 @@ class ollama extends utils.Adapter {
 		// Subscribe to all states
 		this.subscribeStates("*");
 
+		// Watch for custom embeddingEnabled changes and log debug
+		QdrantHelper.watchEmbeddingEnabled(this);
+
 		// Configure server base URL for HTTP calls
 		this._serverUrlBase = `http://${this.config.ollamaIp}:${this.config.ollamaPort}`;
 
@@ -94,7 +97,7 @@ class ollama extends utils.Adapter {
 				await this.setObjectNotExistsAsync(`models.${modelId}`, { type: "channel", common: { name: model }, native: {} });
 				await this.setObjectNotExistsAsync(`models.${modelId}.response`, { type: "state", common: { name: this.translate("Response"), type: "string", role: "state", read: true, write: false }, native: {} });
 				await this.setObjectNotExistsAsync(`models.${modelId}.running`, { type: "state", common: { name: this.translate("Running"), type: "boolean", role: "indicator.running", read: true, write: false, def: false }, native: {} });
-				await this.setObjectNotExistsAsync(`models.${modelId}.expires`, { type: "state", common: { name: this.translate("Expires"), type: "string", role: "value", read: true, write: false, def: "" }, native: {} });
+				await this.setObjectNotExistsAsync(`models.${modelId}.expires`, { type: "state", common: { name: this.translate("Expires"), type: "string", role: "value.datetime", read: true, write: false, def: "" }, native: {} });
 				await this.setObjectNotExistsAsync(`models.${modelId}.messages`, { type: "channel", common: { name: this.translate("Messages") }, native: {} });
 				await this.setObjectNotExistsAsync(`models.${modelId}.messages.role`, { type: "state", common: { name: this.translate("Role"), type: "string", role: "state", read: true, write: true, def: "user" }, native: {} });
 				await this.setObjectNotExistsAsync(`models.${modelId}.messages.content`, { type: "state", common: { name: this.translate("Content"), type: "string", role: "state", read: true, write: true, def: "" }, native: {} });
