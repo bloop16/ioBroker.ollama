@@ -83,6 +83,48 @@
 		  "default": 6333,
 		  "help": "Port of the Qdrant server.",
 		  "newLine": true
+		},
+		"embeddingModel": {
+		  "type": "text",
+		  "label": "Embedding Model",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "nomic-embed-text",
+		  "help": "Name of the Ollama embedding model to use.",
+		  "newLine": true
+		},
+		"maxContextResults": {
+		  "type": "number",
+		  "label": "Max Context Results",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": 5,
+		  "help": "Maximum number of context results from vector database to include in chat.",
+		  "newLine": true
+		}
+	  }
+	},
+	"Control": {
+	  "type": "panel",
+	  "label": "Control",
+	  "items": {
+		"enableDatapointControl": {
+		  "type": "checkbox",
+		  "label": "Enable Datapoint Control",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": false,
+		  "help": "Allow AI models to automatically change datapoints based on their responses (e.g., '... ist jetzt anwesend').",
+		  "newLine": true
 		}
 	  }
 	}

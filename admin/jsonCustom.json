@@ -2,6 +2,12 @@
   "i18n": true,
   "type": "panel",
   "items": {
+    "allowAutoChange": {
+      "type": "checkbox",
+      "label": "Allow automatic state changes",
+      "default": false,
+      "help": "If enabled, AI models can automatically change this datapoint's value based on their responses."
+    },
     "dataType": {
       "type": "select",
       "label": "Data type",
@@ -12,12 +18,6 @@
       ],
       "help": "Select the data type for this datapoint.",
       "default": "text"
-    },
-    "embeddingEnabled": {
-      "type": "checkbox",
-      "label": "Enable embedding for this datapoint",
-      "default": false,
-      "help": "If enabled, this datapoint will be included in vector embedding (Qdrant)."
     },
     "description": {
       "type": "text",

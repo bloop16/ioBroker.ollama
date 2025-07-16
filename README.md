@@ -8,31 +8,94 @@
 
 [![NPM](https://nodei.co/npm/iobroker.ollama.png?downloads=true)](https://nodei.co/npm/iobroker.ollama/)
 
-**Tests:** ![Test and Release](https://github.com/bloop16/ioBroker.ollama/workflows/Test%20and%20Release/badge.svg)
 
 ## Ollama Adapter for ioBroker
 
-The ioBroker Ollama adapter enables communication with an Ollama server and allows you to use AI models directly from ioBroker. Messages and configuration parameters are set via datapoints, and the model's responses are returned as states.
+The ioBroker Ollama adapter provides a comprehensive AI integration solution that enables communication with an Ollama server and allows you to use AI models directly from ioBroker. This adapter combines traditional chat functionality with advanced features like vector database integration and AI-driven datapoint control.
+
+### Description
+
+This adapter transforms your ioBroker system into an AI-powered home automation hub by integrating with Ollama's local language models. It offers two main operational modes:
+
+1. **Traditional Chat Mode**: Direct communication with AI models through ioBroker datapoints
+2. **Enhanced AI Mode**: Advanced functionality including vector database integration and automatic datapoint control
+
+### Requirements
+
+#### External Dependencies
+- **Ollama Server**: 
+  - Version 0.1.0 or higher
+  - Reachable via network (default: localhost:11434)
+  - At least one language model installed (e.g., `llama3.2`, `mistral`)
+  - For vector database features: embedding model (e.g., `nomic-embed-text`)
+
+#### Optional Dependencies (for enhanced features)
+- **Qdrant Vector Database**:
+  - Version 1.0 or higher
+  - Required for context-aware AI responses
+  - Reachable via network (default: localhost:6333)
+  - Minimum 1GB RAM recommended for vector storage
+
+#### Installation Steps
+1. Install Ollama server on your system or network
+2. Pull required models: `ollama pull llama3.2` (or your preferred model)
+3. For vector features: `ollama pull nomic-embed-text`
+4. (Optional) Install and configure Qdrant vector database
+5. Install the adapter from ioBroker admin interface
 
 ### Main Features
 
-- Automatic detection and creation of all available Ollama models as channels and states
-- Send messages to a model via states under `models.<modelId>.messages.*` (role, content, images, tool_calls, etc.)
-- Build the payload for the Ollama `/api/chat` endpoint from individual states
-- Support for all relevant optional parameters (`tools`, `think`, `format`, `options`, `stream`, `keep_alive`)
-- Model responses are saved in the state `models.<modelId>.response`
-- Status monitoring: Shows if a model is loaded/running and when it expires
-- Multilingual interface via translation files
+- **Model Auto-Discovery**: Automatic detection and creation of all available Ollama models as channels and states
+- **Complete Chat API**: Send messages to models via states under `models.<modelId>.messages.*` (role, content, images, tool_calls, etc.)
+- **Full Parameter Support**: Support for all Ollama parameters (`tools`, `think`, `format`, `options`, `stream`, `keep_alive`)
+- **Real-time Monitoring**: Status monitoring shows if a model is loaded/running and when it expires
+- **Vector Database Integration**: Uses Qdrant for storing and retrieving context-aware embeddings
+- **AI Function-Calling**: Automatic datapoint control based on AI model responses
+- **Context-Enhanced Chat**: Automatically enhances chat messages with relevant datapoint context
 
-### Example Usage
+### Vector Database Integration
 
-1. Install the adapter and configure the Ollama server IP/port
-2. After startup, all models are automatically created as channels under `ollama.0.models.*`
-3. To send a message:
-   - Enter the desired role (`user`/`system`/`assistant`) in `models.<modelId>.messages.role`
-   - Enter your message in `models.<modelId>.messages.content` and confirm
-   - Optionally add images, tool calls, or other parameters
-4. The response appears in the state `models.<modelId>.response`
+The adapter integrates with Qdrant vector database to provide context-aware AI responses:
+
+#### Data Formatting Examples:
+
+**Boolean Type:**
+```
+Configuration:
+- Description: "Jemand ist"
+- Location: "Zuhause"
+- Value for true: "anwesend"
+- Value for false: "abwesend"
+
+Formatted output: "Jemand ist anwesend (Zuhause)"
+```
+
+**Number Type:**
+```
+Configuration:
+- Description: "Zählerstand"
+- Location: "Zuhause"
+- Units: "l"
+
+Formatted output: "Zählerstand: 1250l (Zuhause)"
+```
+
+**Text Type:**
+```
+Configuration:
+- Description: "Rasenroboter"
+- Location: "Garten"
+- Additional text: "Laufzeit"
+
+Formatted output: "Rasenroboter: (Garten) - Laufzeit 3700"
+```
+
+Each formatted entry includes:
+- Datapoint ID
+- Timestamp
+- Original value
+- Formatted text for embedding
+- Location and description metadata
 
 ### Supported States per Model
 
@@ -56,7 +119,17 @@ The ioBroker Ollama adapter enables communication with an Ollama server and allo
 - The payload matches the Ollama API specification exactly
 - For multi-turn chats, message history can be mapped via states (currently only single message per trigger)
 
+### ToDo
+
+- Check for bugs
+- Check Image Analysis
+
 ## Changelog
+
+### v0.1.0
+* Vector Database integration with Qdrant
+* AI Function-Calling for datapoint control
+* enhanced context-aware responses
 
 ### v0.0.3
 * Ready for first public release

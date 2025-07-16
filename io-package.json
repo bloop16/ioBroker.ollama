@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.0.3",
+        "version": "0.1.0",
         "news": {
+            "0.1.0": {
+                "en": "Vector Database integration with Qdrant, AI Function-Calling for datapoint control, enhanced context-aware responses, simplified codebase",
+                "de": "Vektordatenbank-Integration mit Qdrant, AI Function-Calling für Datenpunkt-Steuerung, verbesserte kontextbasierte Antworten, vereinfachte Codebasis",
+                "ru": "Интеграция базы данных векторных данных с Qdrant, AI Function Calling для управления DataPoint, улучшенные ответы с учетом контекста, упрощенная кодовая база",
+                "pt": "Integração do banco de dados vetor",
+                "nl": "Vectordatabase-integratie met Qdrant, AI-functie-calling voor datapoint-besturing, verbeterde contextbewuste antwoorden, vereenvoudigde codebase",
+                "fr": "Intégration de la base de données vectorielle avec QDRANT, Fonction-appels pour le contrôle de point de données, réponses renforcées contextuelles, base de code simplifiée",
+                "it": "Integrazione del database vettoriale con QDRANT, CALLAZIONE DI FUNZIONE AI per il controllo del punto dati, risposte consapevole del contesto migliorate, base di codice semplificata",
+                "es": "Integración de la base de datos vectorial con QDRANT, la función de IA para el control de DataPoint, respuestas mejoradas con el contexto, la base de código simplificado",
+                "pl": "Integracja wektorowej bazy danych z QDRANT, AI Concaling dla kontroli punktu danych, ulepszone odpowiedzi kontekstowe, uproszczona baza kodu",
+                "uk": "Інтеграція векторної бази даних з QDRANT, AI функціонування для управління датами, розширені відповіді на контекст, спрощена база коду",
+                "zh-cn": "矢量数据库与QDRANT，数据点控件的AI函数调用，增强的上下文感知响应，简化的代码库"
+            },
             "0.0.3": {
                 "en": "Ready for first public release. All compliance warnings fixed. Stable features: Ollama model detection, chat API, state mapping, multi-language, status monitoring.",
                 "de": "Bereit für den ersten öffentlichen Release. Alle Compliance-Warnungen behoben. Stabile Features: Ollama-Modellerkennung, Chat-API, State-Mapping, Mehrsprachigkeit, Statusüberwachung.",
@@ -115,7 +128,9 @@
         "checkOllamaModelRunning": 60000,
         "useVectorDb": false,
         "vectorDbIp": "127.0.0.1",
-        "vectorDbPort": 6333
+        "vectorDbPort": 6333,
+        "embeddingModel": "nomic-embed-text",
+        "maxContextResults": 5
     },
     "objects": [],
     "instanceObjects": []
