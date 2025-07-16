@@ -24,6 +24,7 @@ class ollama extends utils.Adapter {
 		this._translations = {};        // translations
 		this._embeddingEnabledDatapoints = new Set(); // track embedding enabled datapoints
 		this._autoChangeEnabledDatapoints = new Set(); // track auto-change enabled datapoints
+		this._processedStates = new Set(); // track processed state changes to prevent duplicates
 		this.on("ready", this.onReady.bind(this));
 		this.on("stateChange", this.onStateChange.bind(this));
 		this.on("objectChange", this.onObjectChange.bind(this));
@@ -124,6 +125,23 @@ class ollama extends utils.Adapter {
 	async createModelStates(models) {
 		await this.setObjectNotExistsAsync("models", { type: "folder", common: { name: this.translate("Ollama Models") }, native: {} });
 		
+		// Create vector database management state
+		if (this.config.useVectorDb) {
+			await this.setObjectNotExistsAsync("vectordb", { type: "channel", common: { name: this.translate("Vector Database") }, native: {} });
+			await this.setObjectNotExistsAsync("vectordb.cleanup", { 
+				type: "state", 
+				common: { 
+					name: this.translate("Clean up duplicates"), 
+					type: "boolean", 
+					role: "button", 
+					read: true, 
+					write: true, 
+					def: false 
+				}, 
+				native: {} 
+			});
+		}
+		
 		for (const model of models) {
 			const modelId = model.replace(/[^a-zA-Z0-9_]/g, "_");
 			await this.setObjectNotExistsAsync(`models.${modelId}`, { type: "channel", common: { name: model }, native: {} });
@@ -174,9 +192,17 @@ class ollama extends utils.Adapter {
 		if (!state) return;
 
 		try {
+			// Handle vector database cleanup button
+			if (id === `${this.namespace}.vectordb.cleanup` && state.val === true && !state.ack) {
+				this.log.info('[VectorDB] Starting manual cleanup of duplicate entries...');
+				await this.cleanupAllDuplicates();
+				await this.setState('vectordb.cleanup', false, true);
+				return;
+			}
+
 			// Check if this is an embedding enabled datapoint
 			if (this._embeddingEnabledDatapoints && this._embeddingEnabledDatapoints.has(id)) {
-				this.log.debug(`[EmbeddingEnabled] State change for datapoint ${id}: ${JSON.stringify(state)}`);
+				this.log.debug(`[VectorDB] State change for datapoint ${id}: ${state.val}`);
 				
 				// Process embedding if vector database is enabled
 				if (this.config.useVectorDb) {
@@ -206,6 +232,30 @@ class ollama extends utils.Adapter {
 				const ollamaUrl = `http://${this.config.ollamaIp}:${this.config.ollamaPort}`;
 				const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
 				
+				// Create a unique identifier for this specific state change
+				// Include value and timestamp to prevent duplicate embeddings
+				const stateKey = `${id}_${state.val}_${state.ts}`;
+				
+				// Prevent duplicate processing of the same state change
+				if (!this._processedStates) {
+					this._processedStates = new Set();
+				}
+				
+				if (this._processedStates.has(stateKey)) {
+					this.log.debug(`[VectorDB] Skipping duplicate processing for ${id} with value ${state.val} at ${new Date(state.ts).toISOString()}`);
+					return;
+				}
+				
+				this._processedStates.add(stateKey);
+				
+				// Clean up old entries to prevent memory leaks (keep only last 500 entries)
+				if (this._processedStates.size > 1000) {
+					const entries = Array.from(this._processedStates);
+					this._processedStates = new Set(entries.slice(-500));
+				}
+				
+				this.log.debug(`[VectorDB] Processing embedding for datapoint ${id} with value: ${state.val} at ${new Date(state.ts).toISOString()}`);
+				
 				await QdrantHelper.processEmbeddingEnabledDatapoint(
 					id, 
 					state, 
@@ -215,9 +265,15 @@ class ollama extends utils.Adapter {
 					this.log,
 					this.config.embeddingModel || 'nomic-embed-text'
 				);
+				
+				// Periodically clean up duplicates (every 50th processing)
+				if (Math.random() < 0.02) { // 2% chance = roughly every 50 processings
+					this.log.debug(`[VectorDB] Running periodic cleanup for datapoint ${id}`);
+					await QdrantHelper.cleanupDuplicateEntries(id, qdrantUrl, 'iobroker_datapoints', this.log);
+				}
 			}
 		} catch (error) {
-			this.log.error(`[EmbeddingEnabled] Error processing embedding for ${id}: ${error}`);
+			this.log.error(`[VectorDB] Error processing embedding for ${id}: ${error}`);
 		}
 	}
 
@@ -266,20 +322,17 @@ class ollama extends utils.Adapter {
 				);
 				
 				if (result !== null) {
-					const { modelId: responseModelId, answer, details } = result;
+					const { modelId: responseModelId, answer, toolCallResults, details } = result;
 					await this.setState(`models.${responseModelId}.response`, answer, true);
 					
-					// Process response for function calls
-					if (answer && typeof answer === 'string') {
-						const functionResults = await this.ollamaClient.processResponseForDatapointChanges(answer, responseModelId);
-						if (functionResults && functionResults.length > 0) {
-							this.log.info(`[FunctionCalling] Model ${modelName} executed ${functionResults.length} function calls`);
-							for (const funcResult of functionResults) {
-								if (funcResult.success) {
-									this.log.info(`[FunctionCalling] Function executed successfully: ${JSON.stringify(funcResult)}`);
-								} else {
-									this.log.error(`[FunctionCalling] Function execution failed: ${funcResult.error}`);
-								}
+					// Process tool call results if present
+					if (toolCallResults && toolCallResults.length > 0) {
+						this.log.info(`[FunctionCalling] Model ${modelName} executed ${toolCallResults.length} function calls`);
+						for (const funcResult of toolCallResults) {
+							if (funcResult.success) {
+								this.log.info(`[FunctionCalling] Function executed successfully: ${JSON.stringify(funcResult)}`);
+							} else {
+								this.log.error(`[FunctionCalling] Function execution failed: ${funcResult.error}`);
 							}
 						}
 					}
@@ -333,77 +386,84 @@ class ollama extends utils.Adapter {
 			if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
 				const customConfig = obj.common.custom[this.namespace];
 				
+				// Track what features are being enabled/disabled for consolidated logging
+				const embeddingChanged = {
+					enabled: customConfig.enabled === true,
+					wasEnabled: this._embeddingEnabledDatapoints.has(id),
+					changed: false
+				};
+				
+				const autoChangeChanged = {
+					enabled: customConfig.allowAutoChange === true,
+					wasEnabled: this._autoChangeEnabledDatapoints.has(id),
+					changed: false
+				};
+				
 				// Handle embedding enabled
-				if (customConfig.enabled === true) {
-					// Add to tracking set
-					if (!this._embeddingEnabledDatapoints.has(id)) {
-						this._embeddingEnabledDatapoints.add(id);
-						this.log.debug(`[EmbeddingEnabled] Added ${id} to tracking`);
-						
-						// Subscribe to state changes for this datapoint
-						this.subscribeForeignStates(id);
-						
-						// Log immediate debug for enabled datapoint
-						this.log.info(`[EmbeddingEnabled] Datapoint ${id} enabled for embedding`);
-					}
-				} else {
-					// Remove from tracking set
-					if (this._embeddingEnabledDatapoints.has(id)) {
-						this._embeddingEnabledDatapoints.delete(id);
-						this.log.debug(`[EmbeddingEnabled] Removed ${id} from tracking`);
-						
-						// Unsubscribe from state changes
-						this.unsubscribeForeignStates(id);
-						
-						this.log.info(`[EmbeddingEnabled] Datapoint ${id} disabled for embedding`);
-					}
+				if (embeddingChanged.enabled && !embeddingChanged.wasEnabled) {
+					this._embeddingEnabledDatapoints.add(id);
+					this.log.debug(`[VectorDB] Added ${id} to embedding tracking`);
+					this.subscribeForeignStates(id);
+					embeddingChanged.changed = true;
+				} else if (!embeddingChanged.enabled && embeddingChanged.wasEnabled) {
+					this._embeddingEnabledDatapoints.delete(id);
+					this.log.debug(`[VectorDB] Removed ${id} from embedding tracking`);
+					this.unsubscribeForeignStates(id);
+					embeddingChanged.changed = true;
 				}
 				
 				// Handle auto-change enabled
-				if (customConfig.allowAutoChange === true) {
-					if (!this._autoChangeEnabledDatapoints.has(id)) {
-						this._autoChangeEnabledDatapoints.add(id);
-						this.log.debug(`[AutoChange] Added ${id} to auto-change tracking`);
-						this.log.info(`[AutoChange] Datapoint ${id} enabled for automatic changes`);
-						
-						// Update ollamaClient with new allowed datapoints
-						if (this.ollamaClient) {
-							this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
-						}
+				if (autoChangeChanged.enabled && !autoChangeChanged.wasEnabled) {
+					this._autoChangeEnabledDatapoints.add(id);
+					this.log.debug(`[FunctionCalling] Added ${id} to auto-change tracking`);
+					if (this.ollamaClient) {
+						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
 					}
-				} else {
-					if (this._autoChangeEnabledDatapoints.has(id)) {
-						this._autoChangeEnabledDatapoints.delete(id);
-						this.log.debug(`[AutoChange] Removed ${id} from auto-change tracking`);
-						this.log.info(`[AutoChange] Datapoint ${id} disabled for automatic changes`);
-						
-						// Update ollamaClient with new allowed datapoints
-						if (this.ollamaClient) {
-							this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
-						}
+					autoChangeChanged.changed = true;
+				} else if (!autoChangeChanged.enabled && autoChangeChanged.wasEnabled) {
+					this._autoChangeEnabledDatapoints.delete(id);
+					this.log.debug(`[FunctionCalling] Removed ${id} from auto-change tracking`);
+					if (this.ollamaClient) {
+						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
+					}
+					autoChangeChanged.changed = true;
+				}
+				
+				// Consolidated logging - only log if something actually changed
+				if (embeddingChanged.changed || autoChangeChanged.changed) {
+					const features = [];
+					if (embeddingChanged.enabled) features.push("Vector Database");
+					if (autoChangeChanged.enabled) features.push("Function Calling");
+					
+					if (features.length > 0) {
+						this.log.info(`[Config] Datapoint ${id} enabled for: ${features.join(", ")}`);
+					} else {
+						this.log.info(`[Config] Datapoint ${id} disabled for all AI features`);
 					}
 				}
+				
 			} else {
 				// Object was deleted or custom config removed
+				let removedFeatures = [];
+				
 				if (this._embeddingEnabledDatapoints.has(id)) {
 					this._embeddingEnabledDatapoints.delete(id);
-					this.log.debug(`[EmbeddingEnabled] Removed ${id} from tracking (object deleted)`);
-					
-					// Unsubscribe from state changes
+					this.log.debug(`[VectorDB] Removed ${id} from tracking (object deleted)`);
 					this.unsubscribeForeignStates(id);
-					
-					this.log.info(`[EmbeddingEnabled] Datapoint ${id} removed from embedding tracking`);
+					removedFeatures.push("Vector Database");
 				}
 				
 				if (this._autoChangeEnabledDatapoints.has(id)) {
 					this._autoChangeEnabledDatapoints.delete(id);
-					this.log.debug(`[AutoChange] Removed ${id} from auto-change tracking (object deleted)`);
-					this.log.info(`[AutoChange] Datapoint ${id} removed from auto-change tracking`);
-					
-					// Update ollamaClient with new allowed datapoints
+					this.log.debug(`[FunctionCalling] Removed ${id} from auto-change tracking (object deleted)`);
 					if (this.ollamaClient) {
 						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
 					}
+					removedFeatures.push("Function Calling");
+				}
+				
+				if (removedFeatures.length > 0) {
+					this.log.info(`[Config] Datapoint ${id} removed from: ${removedFeatures.join(", ")}`);
 				}
 			}
 		} catch (error) {
@@ -416,7 +476,7 @@ class ollama extends utils.Adapter {
 	 * Searches all objects for custom configurations with embedding enabled
 	 */
 	async checkExistingEmbeddingEnabled() {
-		this.log.debug("Checking for existing objects with enabled...");
+		this.log.debug("Checking for existing objects with enabled features...");
 		
 		try {
 			// Get all objects with custom config
@@ -428,19 +488,26 @@ class ollama extends utils.Adapter {
 					const customConfig = row.value;
 					
 					if (customConfig && customConfig[this.namespace]) {
+						const features = [];
+						
 						// Check for embedding enabled
 						if (customConfig[this.namespace].enabled === true) {
 							this._embeddingEnabledDatapoints.add(id);
-							this.log.debug(`[EmbeddingEnabled] Found existing enabled datapoint: ${id}`);
-							
-							// Subscribe to state changes for this datapoint
+							this.log.debug(`[VectorDB] Found existing enabled datapoint: ${id}`);
 							this.subscribeForeignStates(id);
+							features.push("Vector Database");
 						}
 						
 						// Check for auto-change enabled
 						if (customConfig[this.namespace].allowAutoChange === true) {
 							this._autoChangeEnabledDatapoints.add(id);
-							this.log.debug(`[AutoChange] Found auto-change enabled datapoint: ${id}`);
+							this.log.debug(`[FunctionCalling] Found auto-change enabled datapoint: ${id}`);
+							features.push("Function Calling");
+						}
+						
+						// Consolidated logging for startup
+						if (features.length > 0) {
+							this.log.info(`[Config] Datapoint ${id} configured for: ${features.join(", ")}`);
 						}
 					}
 				}
@@ -449,8 +516,8 @@ class ollama extends utils.Adapter {
 			this.log.error(`Error checking existing objects: ${error}`);
 		}
 		
-		this.log.debug(`[EmbeddingEnabled] Found ${this._embeddingEnabledDatapoints.size} datapoints with embedding enabled`);
-		this.log.debug(`[AutoChange] Found ${this._autoChangeEnabledDatapoints.size} datapoints with auto-change enabled`);
+		this.log.info(`[VectorDB] Found ${this._embeddingEnabledDatapoints.size} datapoints with Vector Database enabled`);
+		this.log.info(`[FunctionCalling] Found ${this._autoChangeEnabledDatapoints.size} datapoints with Function Calling enabled`);
 	}
 
 	/**
@@ -518,6 +585,10 @@ class ollama extends utils.Adapter {
 				this._autoChangeEnabledDatapoints.clear();
 			}
 			
+			if (this._processedStates) {
+				this._processedStates.clear();
+			}
+			
 			this.log.info('Adapter shutdown completed');
 			
 			callback();
@@ -525,6 +596,32 @@ class ollama extends utils.Adapter {
 			this.log.error(`Error during adapter shutdown: ${error.message}`);
 			callback();
 		}
+	}
+
+	/**
+	 * Clean up all duplicate entries for all embedding-enabled datapoints
+	 */
+	async cleanupAllDuplicates() {
+		if (!this.config.useVectorDb) {
+			this.log.warn('[VectorDB] Vector database is not enabled');
+			return;
+		}
+
+		const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
+		let totalCleaned = 0;
+		
+		this.log.info('[VectorDB] Starting cleanup of duplicate entries for all datapoints...');
+		
+		for (const datapointId of this._embeddingEnabledDatapoints) {
+			try {
+				await QdrantHelper.cleanupDuplicateEntries(datapointId, qdrantUrl, 'iobroker_datapoints', this.log);
+				totalCleaned++;
+			} catch (error) {
+				this.log.error(`[VectorDB] Error cleaning up duplicates for ${datapointId}: ${error.message}`);
+			}
+		}
+		
+		this.log.info(`[VectorDB] Cleanup completed for ${totalCleaned} datapoints`);
 	}
 
 }

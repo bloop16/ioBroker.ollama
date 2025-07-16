@@ -21,6 +21,8 @@
     "Options (JSON)": "Optionen (JSON)",
     "Info": "Info",
     "Connection status": "Verbindungsstatus",
+    "Vector Database": "Vektordatenbank",
+    "Clean up duplicates": "Duplikate bereinigen",
     "Description": "Beschreibung",
     "Units": "Einheiten",
     "Value for TRUE (Boolean)": "Wert für WAHR (Boolean)",

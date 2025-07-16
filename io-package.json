@@ -70,17 +70,17 @@
             "zh-cn": "Ollama"
         },
         "desc": {
-            "en": "Ai, ollama",
-            "de": "Ai, Ollama",
-            "ru": "Ай, Оллама",
-            "pt": "Ai, Ollama",
-            "nl": "AI, Ollama",
-            "fr": "AI, Olllama",
-            "it": "AI, Ollama",
-            "es": "Ai, ollama",
-            "pl": "Ai, Ollama",
-            "uk": "AI, Ollama",
-            "zh-cn": "AI，Ollama"
+            "en": "AI integration with Ollama, vector database support, and datapoint control",
+            "de": "AI-Integration mit Ollama, Vektordatenbank-Unterstützung und Datenpunkt-Steuerung",
+            "ru": "Интеграция ИИ с Ollama, поддержка векторной базы данных и управление точками данных",
+            "pt": "Integração de IA com Ollama, suporte de banco de dados vetorial e controle de ponto de dados",
+            "nl": "AI-integratie met Ollama, vectordatabase-ondersteuning en datapoint-controle",
+            "fr": "Intégration IA avec Ollama, support de base de données vectorielle et contrôle de point de données",
+            "it": "Integrazione AI con Ollama, supporto database vettoriale e controllo punto dati",
+            "es": "Integración de IA con Ollama, soporte de base de datos vectorial y control de punto de datos",
+            "pl": "Integracja AI z Ollama, wsparcie bazy danych wektorowych i kontrola punktów danych",
+            "uk": "Інтеграція ІІ з Ollama, підтримка векторної бази даних та керування точками даних",
+            "zh-cn": "与Ollama的AI集成，向量数据库支持和数据点控制"
         },
         "authors": [
             "bloop16 <bloop16@hotmail.com>"
@@ -88,8 +88,11 @@
         "keywords": [
             "ollama",
             "ai",
-            "template",
-            "home automation"
+            "artificial intelligence",
+            "vector database",
+            "qdrant",
+            "home automation",
+            "smart home"
         ],
         "licenseInformation": {
             "type": "free",
@@ -98,7 +101,7 @@
         "platform": "Javascript/Node.js",
         "icon": "ollama.png",
         "extIcon": "https://raw.githubusercontent.com/bloop16/ioBroker.ollama/main/admin/ollama.png",
-        "readme": "https://github.com/bloop16/ioBroker.send2ollama/blob/main/README.md",
+        "readme": "https://github.com/bloop16/ioBroker.ollama/blob/main/README.md",
         "loglevel": "info",
         "tier": 3,
         "mode": "daemon",
@@ -130,7 +133,8 @@
         "vectorDbIp": "127.0.0.1",
         "vectorDbPort": 6333,
         "embeddingModel": "nomic-embed-text",
-        "maxContextResults": 5
+        "maxContextResults": 5,
+        "enableDatapointControl": false
     },
     "objects": [],
     "instanceObjects": []

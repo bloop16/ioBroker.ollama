@@ -123,7 +123,7 @@
 		  "lg": 6,
 		  "xl": 6,
 		  "default": false,
-		  "help": "Allow AI models to automatically change datapoints based on their responses (e.g., '... ist jetzt anwesend').",
+		  "help": "Allow AI models to automatically change datapoints based on their responses (e.g., '... is now available').",
 		  "newLine": true
 		}
 	  }

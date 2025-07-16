@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test Ollama Function Calling",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"const OllamaClient = require('./lib/ollamaClient'); const client = new OllamaClient('http://localhost:11434', console, {namespace: 'test'}); client.configureDatapointControl(true, new Set(['test.datapoint'])); console.log('Ollama client configured successfully'); console.log('Tool format test:', JSON.stringify(client._datapointController ? client._datapointController.getFunctionDefinitions() : 'No controller'));"
+			],
+			"group": "test",
+			"isBackground": false
+		}
+	]
+}
