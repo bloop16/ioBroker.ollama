@@ -13,7 +13,6 @@
     "Content": "Inhalt",
     "Images (JSON Array)": "Bilder (JSON-Array)",
     "Tool Calls (JSON Array)": "Werkzeugaufrufe (JSON-Array)",
-    "Stream": "Stream",
     "Think": "Denken",
     "Tools (JSON)": "Werkzeuge (JSON)",
     "Keep Alive": "Aktiv lassen",
@@ -44,5 +43,7 @@
     "Allow automatic state changes": "Automatische Statusänderungen erlauben",
     "Boolean": "Boolean",
     "Number": "Zahl",
-    "Text": "Text"
+    "Text": "Text",
+    "Processing": "Verarbeitung",
+    "Response Content": "Antwortinhalt"
 }

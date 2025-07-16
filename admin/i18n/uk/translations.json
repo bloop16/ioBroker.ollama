@@ -42,5 +42,9 @@
     "Allow automatic state changes": "Allow automatic state changes",
     "Boolean": "Boolean",
     "Number": "Number",
-    "Text": "Text"
+    "Text": "Text",
+    "Vector Database": "Векторна база даних",
+    "Clean up duplicates": "Очистити дублікати",
+    "Processing": "Обробка",
+    "Response Content": "Вміст відповіді"
 }

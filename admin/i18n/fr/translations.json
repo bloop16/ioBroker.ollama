@@ -42,5 +42,9 @@
     "Allow automatic state changes": "Permettre les changements d'état automatiques",
     "Boolean": "Booléen",
     "Number": "Nombre",
-    "Text": "Texte"
+    "Text": "Texte",
+    "Vector Database": "Base de données vectorielle",
+    "Clean up duplicates": "Nettoyer les doublons",
+    "Processing": "Traitement",
+    "Response Content": "Contenu de réponse"
 }

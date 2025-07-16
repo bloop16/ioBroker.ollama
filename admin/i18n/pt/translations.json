@@ -42,5 +42,9 @@
     "Allow automatic state changes": "Allow automatic state changes",
     "Boolean": "Boolean",
     "Number": "Number",
-    "Text": "Text"
+    "Text": "Text",
+    "Vector Database": "Banco de dados vetorial",
+    "Clean up duplicates": "Limpe as duplicatas",
+    "Processing": "Processamento",
+    "Response Content": "Conteúdo de resposta"
 }

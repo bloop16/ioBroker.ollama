@@ -7,23 +7,18 @@ const DatapointController = require("./lib/datapointController");
 
 class ollama extends utils.Adapter {
 
-	/**
-	 * Creates an instance of ollama adapter
-	 */
 	constructor(options) {
 		super({
 			...options,
 			name: "ollama",
 		});
-		this._subscribedStates = new Set();
 		this._models = [];              // track model names and IDs for running checks
 		this._runningInterval = null;   // interval handler for running status checks
 		this._connected = false;        // track connection status for running checks
 		this._axios = require("axios"); // HTTP client
 		this._serverUrlBase = "";       // to be set on ready
 		this._translations = {};        // translations
-		this._embeddingEnabledDatapoints = new Set(); // track embedding enabled datapoints
-		this._autoChangeEnabledDatapoints = new Set(); // track auto-change enabled datapoints
+		this._enabledDatapoints = new Set(); // track both embedding and auto-change enabled datapoints
 		this._processedStates = new Set(); // track processed state changes to prevent duplicates
 		this.on("ready", this.onReady.bind(this));
 		this.on("stateChange", this.onStateChange.bind(this));
@@ -31,9 +26,6 @@ class ollama extends utils.Adapter {
 		this.on("unload", this.onUnload.bind(this));
 	}
 
-	/**
-	 * Translates text using the adapter's translation system
-	 */
 	translate(key) {
 		if (this._translations[key]) {
 			return this._translations[key];
@@ -41,10 +33,6 @@ class ollama extends utils.Adapter {
 		return key;
 	}
 
-	/**
-	 * Is called when databases are connected and adapter received configuration
-	 * Initializes the adapter, sets up connections, and configures all components
-	 */
 	async onReady() {
 		try {		this.log.debug(`Ollama Server IP: ${this.config.ollamaIp}`);
 		this.log.debug(`Ollama Server Port: ${this.config.ollamaPort}`);
@@ -92,16 +80,20 @@ class ollama extends utils.Adapter {
 					this.config.maxContextResults || 5
 				);
 			}
-
-			// Configure datapoint control if enabled
-			if (this.config && this.config['enableDatapointControl']) {
-				this.ollamaClient.configureDatapointControl(true, this._autoChangeEnabledDatapoints);
-			} else {
-				this.ollamaClient.configureDatapointControl(false, this._autoChangeEnabledDatapoints);
-			}
+		// Configure datapoint control if enabled
+		if (this.config && this.config['enableDatapointControl']) {
+			this.ollamaClient.configureDatapointControl(true, this._enabledDatapoints);
+		} else {
+			this.ollamaClient.configureDatapointControl(false, this._enabledDatapoints);
+		}
 
 			const models = await this.ollamaClient.fetchModels();
 			this.log.info(`Fetched models: ${models.join(", ")}`);
+			
+			// Debug: Log each model name individually
+			models.forEach((model, index) => {
+				this.log.debug(`[Setup] Model ${index + 1}: "${model}"`);
+			});
 			// mark connected
 			await this.setConnected(true);
 			
@@ -120,7 +112,7 @@ class ollama extends utils.Adapter {
 	}
 
 	/**
-	 * Creates ioBroker states for each Ollama model
+	 * Creates essential ioBroker states for each Ollama model (optimized)
 	 */
 	async createModelStates(models) {
 		await this.setObjectNotExistsAsync("models", { type: "folder", common: { name: this.translate("Ollama Models") }, native: {} });
@@ -144,50 +136,49 @@ class ollama extends utils.Adapter {
 		
 		for (const model of models) {
 			const modelId = model.replace(/[^a-zA-Z0-9_]/g, "_");
+			
+			// Log model creation for debugging
+			this.log.debug(`[Setup] Creating states for model '${model}' with ID '${modelId}'`);
+			
+			// Essential states only
 			await this.setObjectNotExistsAsync(`models.${modelId}`, { type: "channel", common: { name: model }, native: {} });
 			await this.setObjectNotExistsAsync(`models.${modelId}.response`, { type: "state", common: { name: this.translate("Response"), type: "string", role: "state", read: true, write: false }, native: {} });
 			await this.setObjectNotExistsAsync(`models.${modelId}.running`, { type: "state", common: { name: this.translate("Running"), type: "boolean", role: "indicator.running", read: true, write: false, def: false }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.expires`, { type: "state", common: { name: this.translate("Expires"), type: "string", role: "value.datetime", read: true, write: false, def: "" }, native: {} });
+			
+			// Processing state to prevent multiple requests
+			await this.setObjectNotExistsAsync(`models.${modelId}.processing`, { type: "state", common: { name: this.translate("Processing"), type: "boolean", role: "indicator.working", read: true, write: false, def: false }, native: {} });
+			
+			// Response content state (separate from formatted response)
+			await this.setObjectNotExistsAsync(`models.${modelId}.content`, { type: "state", common: { name: this.translate("Response Content"), type: "string", role: "state", read: true, write: false }, native: {} });
+			
+			// Message states
 			await this.setObjectNotExistsAsync(`models.${modelId}.messages`, { type: "channel", common: { name: this.translate("Messages") }, native: {} });
 			await this.setObjectNotExistsAsync(`models.${modelId}.messages.role`, { type: "state", common: { name: this.translate("Role"), type: "string", role: "state", read: true, write: true, def: "user" }, native: {} });
 			await this.setObjectNotExistsAsync(`models.${modelId}.messages.content`, { type: "state", common: { name: this.translate("Content"), type: "string", role: "state", read: true, write: true, def: "" }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.messages.images`, { type: "state", common: { name: this.translate("Images (JSON Array)"), type: "string", role: "state", read: true, write: true, def: "[]" }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.messages.tool_calls`, { type: "state", common: { name: this.translate("Tool Calls (JSON Array)"), type: "string", role: "state", read: true, write: true, def: "[]" }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.stream`, { type: "state", common: { name: this.translate("Stream"), type: "boolean", role: "state", read: true, write: true, def: false }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.think`, { type: "state", common: { name: this.translate("Think"), type: "boolean", role: "state", read: true, write: true, def: false }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.tools`, { type: "state", common: { name: this.translate("Tools (JSON)"), type: "string", role: "state", read: true, write: true, def: "[]" }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.keep_alive`, { type: "state", common: { name: this.translate("Keep Alive"), type: "string", role: "state", read: true, write: true, def: "5m" }, native: {} });
-			await this.setObjectNotExistsAsync(`models.${modelId}.format`, { type: "state", common: { name: this.translate("Format ('json' or JSON object)"), type: "string", role: "state", read: true, write: true, def: "" }, native: {} });
+			
+			// Optional advanced states (reduced set)
 			await this.setObjectNotExistsAsync(`models.${modelId}.options`, { type: "state", common: { name: this.translate("Options (JSON)"), type: "string", role: "state", read: true, write: true, def: "{}" }, native: {} });
 
-			// Create response details channel and states
-			await this.setObjectNotExistsAsync(`models.${modelId}.responseDetails`, { type: "channel", common: { name: "Response Details" }, native: {} });
-			const detailsKeys = [
-				"created_at",
-				"role",
-				"content",
-				"total_duration",
-				"load_duration",
-				"prompt_eval_count",
-				"prompt_eval_duration",
-				"eval_count",
-				"eval_duration"
-			];
-			for (const key of detailsKeys) {
-				await this.setObjectNotExistsAsync(
-					`models.${modelId}.responseDetails.${key}`,
-					{ type: "state", common: { name: key, type: "string", role: "state", read: true, write: false }, native: {} }
-				);
-			}
-			// Add model entry for monitoring
+			// Add model entry for monitoring with original name stored
 			this._models.push({ name: model, id: modelId });
+			
+			// Store original model name in the state object for later retrieval
+			await this.setObjectNotExistsAsync(`models.${modelId}.originalName`, { 
+				type: "state", 
+				common: { 
+					name: this.translate("Original Model Name"), 
+					type: "string", 
+					role: "state", 
+					read: true, 
+					write: false, 
+					def: model 
+				}, 
+				native: {} 
+			});
+			await this.setState(`models.${modelId}.originalName`, model, true);
 		}
 	}
 
-	/**
-	 * Is called if a subscribed state changes
-	 * Handles state changes for chat messages and embedding-enabled datapoints
-	 */
 	async onStateChange(id, state) {
 		if (!state) return;
 
@@ -199,16 +190,15 @@ class ollama extends utils.Adapter {
 				await this.setState('vectordb.cleanup', false, true);
 				return;
 			}
-
-			// Check if this is an embedding enabled datapoint
-			if (this._embeddingEnabledDatapoints && this._embeddingEnabledDatapoints.has(id)) {
-				this.log.debug(`[VectorDB] State change for datapoint ${id}: ${state.val}`);
-				
-				// Process embedding if vector database is enabled
-				if (this.config.useVectorDb) {
-					await this.processEmbeddingDatapoint(id, state);
-				}
+		// Check if this is an embedding enabled datapoint
+		if (this._enabledDatapoints && this._enabledDatapoints.has(id)) {
+			this.log.debug(`[VectorDB] State change for datapoint ${id}: ${state.val}`);
+			
+			// Process embedding if vector database is enabled
+			if (this.config.useVectorDb) {
+				await this.processEmbeddingDatapoint(id, state);
 			}
+		}
 
 			// Handle chat message inputs
 			if (this.isMessageContentState(id, state)) {
@@ -219,67 +209,59 @@ class ollama extends utils.Adapter {
 		}
 	}
 
-	/**
-	 * Processes embedding-enabled datapoints for vector database
-	 */
+
 	async processEmbeddingDatapoint(id, state) {
+		if (!this.config.useVectorDb) return;
+		
 		try {
 			// Get the custom config for this datapoint
 			const obj = await this.getForeignObjectAsync(id);
-			if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
-				const customConfig = obj.common.custom[this.namespace];
-				
-				const ollamaUrl = `http://${this.config.ollamaIp}:${this.config.ollamaPort}`;
-				const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
-				
-				// Create a unique identifier for this specific state change
-				// Include value and timestamp to prevent duplicate embeddings
-				const stateKey = `${id}_${state.val}_${state.ts}`;
-				
-				// Prevent duplicate processing of the same state change
-				if (!this._processedStates) {
-					this._processedStates = new Set();
-				}
-				
-				if (this._processedStates.has(stateKey)) {
-					this.log.debug(`[VectorDB] Skipping duplicate processing for ${id} with value ${state.val} at ${new Date(state.ts).toISOString()}`);
-					return;
-				}
-				
-				this._processedStates.add(stateKey);
-				
-				// Clean up old entries to prevent memory leaks (keep only last 500 entries)
-				if (this._processedStates.size > 1000) {
-					const entries = Array.from(this._processedStates);
-					this._processedStates = new Set(entries.slice(-500));
-				}
-				
-				this.log.debug(`[VectorDB] Processing embedding for datapoint ${id} with value: ${state.val} at ${new Date(state.ts).toISOString()}`);
-				
-				await QdrantHelper.processEmbeddingEnabledDatapoint(
-					id, 
-					state, 
-					customConfig, 
-					ollamaUrl, 
-					qdrantUrl, 
-					this.log,
-					this.config.embeddingModel || 'nomic-embed-text'
-				);
-				
-				// Periodically clean up duplicates (every 50th processing)
-				if (Math.random() < 0.02) { // 2% chance = roughly every 50 processings
-					this.log.debug(`[VectorDB] Running periodic cleanup for datapoint ${id}`);
-					await QdrantHelper.cleanupDuplicateEntries(id, qdrantUrl, 'iobroker_datapoints', this.log);
-				}
+			if (!obj?.common?.custom?.[this.namespace]) return;
+			
+			const customConfig = obj.common.custom[this.namespace];
+			
+			// Create a simple deduplication key
+			const stateKey = `${id}_${state.val}_${Math.floor(state.ts / 60000)}`;
+			
+			if (!this._processedStates) {
+				this._processedStates = new Set();
+			}
+			
+			if (this._processedStates.has(stateKey)) {
+				return; // Skip duplicate
+			}
+			
+			this._processedStates.add(stateKey);
+			
+			// Clean up old entries periodically
+			if (this._processedStates.size > 500) {
+				const entries = Array.from(this._processedStates);
+				this._processedStates = new Set(entries.slice(-250));
+			}
+			
+			// Process embedding
+			const ollamaUrl = `http://${this.config.ollamaIp}:${this.config.ollamaPort}`;
+			const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
+			
+			await QdrantHelper.processEmbeddingEnabledDatapoint(
+				id, 
+				state, 
+				customConfig, 
+				ollamaUrl, 
+				qdrantUrl, 
+				this.log,
+				this.config.embeddingModel || 'nomic-embed-text'
+			);
+			
+			// Periodic cleanup (5% chance)
+			if (Math.random() < 0.05) {
+				await QdrantHelper.cleanupDuplicateEntries(id, qdrantUrl, 'iobroker_datapoints', this.log);
 			}
 		} catch (error) {
-			this.log.error(`[VectorDB] Error processing embedding for ${id}: ${error}`);
+			this.log.error(`[VectorDB] Error processing embedding for ${id}: ${error.message}`);
 		}
 	}
 
-	/**
-	 * Checks if a state ID corresponds to a message content state
-	 */
 	isMessageContentState(id, state) {
 		return id.startsWith(`${this.namespace}.models.`) && 
 			   id.endsWith(`.messages.content`) && 
@@ -288,7 +270,7 @@ class ollama extends utils.Adapter {
 	}
 
 	/**
-	 * Processes chat messages from AI models with function calling support
+	 * Processes chat messages from AI models (optimized)
 	 */
 	async processChatMessage(id, state) {
 		if (!this.ollamaClient) {
@@ -297,7 +279,7 @@ class ollama extends utils.Adapter {
 		}
 
 		try {
-			// Extract model ID from state ID
+			// Extract model information
 			const modelMatch = id.match(/models\.([^.]+)\.messages\.content$/);
 			if (!modelMatch) {
 				this.log.error(`Invalid state ID format: ${id}`);
@@ -305,165 +287,101 @@ class ollama extends utils.Adapter {
 			}
 			
 			const modelId = modelMatch[1];
-			const modelName = modelId.replace(/_/g, ':'); // Convert back to original model name format
-			const userMessage = String(state.val);
 			
-			this.log.debug(`Processing chat message for model ${modelName}: ${userMessage}`);
+			// Check if model is already processing
+			const processingState = await this.getStateAsync(`models.${modelId}.processing`);
+			if (processingState && processingState.val === true) {
+				this.log.warn(`[API] Model ${modelId} is already processing a request. Ignoring new request.`);
+				return;
+			}
 			
-			// Check if function calling is enabled
-			if (this.config && this.config['enableDatapointControl']) {
-				// Use original approach with function calling enabled
-				const result = await this.ollamaClient.handleUserMessageInput(
-					this.namespace, 
-					id, 
-					state, 
-					this._models, 
-					this.getStateAsync.bind(this)
-				);
-				
-				if (result !== null) {
-					const { modelId: responseModelId, answer, toolCallResults, details } = result;
-					await this.setState(`models.${responseModelId}.response`, answer, true);
-					
-					// Process tool call results if present
-					if (toolCallResults && toolCallResults.length > 0) {
-						this.log.info(`[FunctionCalling] Model ${modelName} executed ${toolCallResults.length} function calls`);
-						for (const funcResult of toolCallResults) {
-							if (funcResult.success) {
-								this.log.info(`[FunctionCalling] Function executed successfully: ${JSON.stringify(funcResult)}`);
-							} else {
-								this.log.error(`[FunctionCalling] Function execution failed: ${funcResult.error}`);
-							}
-						}
-					}
-				}
-				
-			} else {
-				// Fallback to original approach
-				const result = await this.ollamaClient.handleUserMessageInput(
-					this.namespace, 
-					id, 
-					state, 
-					this._models, 
-					this.getStateAsync.bind(this)
-				);
-				
-				if (result !== null) {
-					const { modelId: responseModelId, answer, details } = result;
-					await this.setState(`models.${responseModelId}.response`, answer, true);
-					this.log.debug(`Ollama API full response for model ${responseModelId}: ${JSON.stringify(details)}`);
+			// Set processing state
+			await this.setState(`models.${modelId}.processing`, true, true);
+			
+			// Get the original model name from the stored state instead of converting
+			const originalNameState = await this.getStateAsync(`models.${modelId}.originalName`);
+			const modelName = originalNameState?.val || modelId.replace(/_/g, ':'); // fallback to old method
+			
+			// Log the model ID to name conversion for debugging
+			this.log.debug(`[API] Using model ID '${modelId}' with original name '${modelName}'`);
+			
+			// Get essential states only
+			const [roleState, contentState, optionsState] = await Promise.all([
+				this.getStateAsync(`models.${modelId}.messages.role`),
+				this.getStateAsync(`models.${modelId}.messages.content`),
+				this.getStateAsync(`models.${modelId}.options`)
+			]);
 
-					// Update response details
-					const detailsPath = `models.${responseModelId}.responseDetails`;
-					for (const [key, value] of Object.entries(details)) {
-						await this.setObjectNotExistsAsync(`${detailsPath}.${key}`, { 
-							type: "state", 
-							common: { 
-								name: key, 
-								type: "string", 
-								role: "state", 
-								read: true, 
-								write: false 
-							}, 
-							native: {} 
-						});
-						await this.setState(`${detailsPath}.${key}`, value !== undefined && value !== null ? String(value) : "", true);
-					}
+			// Build message object
+			const messageObj = {
+				role: roleState?.val || "user",
+				content: contentState?.val || ""
+			};
+
+			// Process message with simplified options (force stream to false)
+			const result = await this.ollamaClient.processChatMessage(modelName, messageObj, {
+				options: optionsState?.val,
+				stream: false // Force disable streaming
+			});
+
+			if (result) {
+				// Debug: Log the full result
+				this.log.debug(`[API] Full response from model ${modelName}: ${JSON.stringify(result, null, 2)}`);
+				
+				// Set response content in separate datapoint
+				await this.setState(`models.${modelId}.content`, result.answer || "", true);
+				
+				// Set formatted response
+				await this.setState(`models.${modelId}.response`, result.answer || "", true);
+				
+				// Log function call results
+				if (result.toolCallResults?.length > 0) {
+					this.log.info(`[AI] Model ${modelName} executed ${result.toolCallResults.length} actions`);
 				}
+			} else {
+				this.log.error(`[API] No result received from model ${modelName}`);
 			}
 		} catch (error) {
 			this.log.error(`Error processing chat message: ${error.message}`);
+		} finally {
+			// Always clear processing state
+			const modelMatch = id.match(/models\.([^.]+)\.messages\.content$/);
+			if (modelMatch) {
+				await this.setState(`models.${modelMatch[1]}.processing`, false, true);
+			}
 		}
 	}
 
 	/**
-	 * Handle object changes to track enabled custom config
-	 * Manages embedding-enabled datapoints based on configuration changes
+	 * Handle object changes to track enabled custom config (optimized)
 	 */
 	async onObjectChange(id, obj) {
 		try {
 			// Check if object has enabled custom config
-			if (obj && obj.common && obj.common.custom && obj.common.custom[this.namespace]) {
+			if (obj?.common?.custom?.[this.namespace]) {
 				const customConfig = obj.common.custom[this.namespace];
 				
-				// Track what features are being enabled/disabled for consolidated logging
-				const embeddingChanged = {
-					enabled: customConfig.enabled === true,
-					wasEnabled: this._embeddingEnabledDatapoints.has(id),
-					changed: false
-				};
-				
-				const autoChangeChanged = {
-					enabled: customConfig.allowAutoChange === true,
-					wasEnabled: this._autoChangeEnabledDatapoints.has(id),
-					changed: false
-				};
-				
-				// Handle embedding enabled
-				if (embeddingChanged.enabled && !embeddingChanged.wasEnabled) {
-					this._embeddingEnabledDatapoints.add(id);
-					this.log.debug(`[VectorDB] Added ${id} to embedding tracking`);
+				// Track both embedding and function calling in one set
+				if (customConfig.enabled === true) {
+					this._enabledDatapoints.add(id);
 					this.subscribeForeignStates(id);
-					embeddingChanged.changed = true;
-				} else if (!embeddingChanged.enabled && embeddingChanged.wasEnabled) {
-					this._embeddingEnabledDatapoints.delete(id);
-					this.log.debug(`[VectorDB] Removed ${id} from embedding tracking`);
+				} else {
+					this._enabledDatapoints.delete(id);
 					this.unsubscribeForeignStates(id);
-					embeddingChanged.changed = true;
 				}
 				
-				// Handle auto-change enabled
-				if (autoChangeChanged.enabled && !autoChangeChanged.wasEnabled) {
-					this._autoChangeEnabledDatapoints.add(id);
-					this.log.debug(`[FunctionCalling] Added ${id} to auto-change tracking`);
-					if (this.ollamaClient) {
-						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
-					}
-					autoChangeChanged.changed = true;
-				} else if (!autoChangeChanged.enabled && autoChangeChanged.wasEnabled) {
-					this._autoChangeEnabledDatapoints.delete(id);
-					this.log.debug(`[FunctionCalling] Removed ${id} from auto-change tracking`);
-					if (this.ollamaClient) {
-						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
-					}
-					autoChangeChanged.changed = true;
+				// Update OllamaClient with current enabled datapoints
+				if (this.ollamaClient) {
+					this.ollamaClient.updateAllowedDatapoints(this._enabledDatapoints);
 				}
-				
-				// Consolidated logging - only log if something actually changed
-				if (embeddingChanged.changed || autoChangeChanged.changed) {
-					const features = [];
-					if (embeddingChanged.enabled) features.push("Vector Database");
-					if (autoChangeChanged.enabled) features.push("Function Calling");
-					
-					if (features.length > 0) {
-						this.log.info(`[Config] Datapoint ${id} enabled for: ${features.join(", ")}`);
-					} else {
-						this.log.info(`[Config] Datapoint ${id} disabled for all AI features`);
-					}
-				}
-				
 			} else {
-				// Object was deleted or custom config removed
-				let removedFeatures = [];
-				
-				if (this._embeddingEnabledDatapoints.has(id)) {
-					this._embeddingEnabledDatapoints.delete(id);
-					this.log.debug(`[VectorDB] Removed ${id} from tracking (object deleted)`);
+				// Object deleted or custom config removed
+				if (this._enabledDatapoints.has(id)) {
+					this._enabledDatapoints.delete(id);
 					this.unsubscribeForeignStates(id);
-					removedFeatures.push("Vector Database");
-				}
-				
-				if (this._autoChangeEnabledDatapoints.has(id)) {
-					this._autoChangeEnabledDatapoints.delete(id);
-					this.log.debug(`[FunctionCalling] Removed ${id} from auto-change tracking (object deleted)`);
 					if (this.ollamaClient) {
-						this.ollamaClient.updateAllowedDatapoints(this._autoChangeEnabledDatapoints);
+						this.ollamaClient.updateAllowedDatapoints(this._enabledDatapoints);
 					}
-					removedFeatures.push("Function Calling");
-				}
-				
-				if (removedFeatures.length > 0) {
-					this.log.info(`[Config] Datapoint ${id} removed from: ${removedFeatures.join(", ")}`);
 				}
 			}
 		} catch (error) {
@@ -492,7 +410,7 @@ class ollama extends utils.Adapter {
 						
 						// Check for embedding enabled
 						if (customConfig[this.namespace].enabled === true) {
-							this._embeddingEnabledDatapoints.add(id);
+							this._enabledDatapoints.add(id);
 							this.log.debug(`[VectorDB] Found existing enabled datapoint: ${id}`);
 							this.subscribeForeignStates(id);
 							features.push("Vector Database");
@@ -500,7 +418,7 @@ class ollama extends utils.Adapter {
 						
 						// Check for auto-change enabled
 						if (customConfig[this.namespace].allowAutoChange === true) {
-							this._autoChangeEnabledDatapoints.add(id);
+							this._enabledDatapoints.add(id);
 							this.log.debug(`[FunctionCalling] Found auto-change enabled datapoint: ${id}`);
 							features.push("Function Calling");
 						}
@@ -516,8 +434,7 @@ class ollama extends utils.Adapter {
 			this.log.error(`Error checking existing objects: ${error}`);
 		}
 		
-		this.log.info(`[VectorDB] Found ${this._embeddingEnabledDatapoints.size} datapoints with Vector Database enabled`);
-		this.log.info(`[FunctionCalling] Found ${this._autoChangeEnabledDatapoints.size} datapoints with Function Calling enabled`);
+		this.log.info(`[AI] Found ${this._enabledDatapoints.size} datapoints with AI features enabled`);
 	}
 
 	/**
@@ -575,15 +492,10 @@ class ollama extends utils.Adapter {
 				// Allow any pending operations to complete
 				this.ollamaClient.stopMonitor();
 			}
-			
-			// Clear tracking sets
-			if (this._embeddingEnabledDatapoints) {
-				this._embeddingEnabledDatapoints.clear();
-			}
-			
-			if (this._autoChangeEnabledDatapoints) {
-				this._autoChangeEnabledDatapoints.clear();
-			}
+					// Clear tracking sets
+		if (this._enabledDatapoints) {
+			this._enabledDatapoints.clear();
+		}
 			
 			if (this._processedStates) {
 				this._processedStates.clear();
@@ -612,7 +524,7 @@ class ollama extends utils.Adapter {
 		
 		this.log.info('[VectorDB] Starting cleanup of duplicate entries for all datapoints...');
 		
-		for (const datapointId of this._embeddingEnabledDatapoints) {
+		for (const datapointId of this._enabledDatapoints) {
 			try {
 				await QdrantHelper.cleanupDuplicateEntries(datapointId, qdrantUrl, 'iobroker_datapoints', this.log);
 				totalCleaned++;

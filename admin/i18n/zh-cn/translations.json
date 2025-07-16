@@ -42,5 +42,9 @@
     "Allow automatic state changes": "Allow automatic state changes",
     "Boolean": "Boolean",
     "Number": "Number",
-    "Text": "Text"
+    "Text": "Text",
+    "Vector Database": "向量数据库",
+    "Clean up duplicates": "清理重复项",
+    "Processing": "加工",
+    "Response Content": "响应内容"
 }
