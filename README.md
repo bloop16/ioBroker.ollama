@@ -122,10 +122,10 @@ Each formatted entry includes:
 ### ToDo
 
 - Check for bugs
-- Give Ollama the abbility to check the state of an ioBroker State
+- Add Websearch if wanted
+- Give Ollama the abbility to check all ioBroker States
 - Tool calling
-- JSON Support for Response
-- Check Image Analysis
+- Image Analysis
 
 ## Changelog
 
