@@ -1,7 +1,7 @@
 {
   "name": "iobroker.ollama",
-  "version": "0.2.0",
-  "description": "AI integration with OpenWebUI, vector database support, and datapoint control",
+  "version": "0.2.1",
+  "description": "AI integration with OpenWebUI, vector database support, universal model compatibility, and intelligent datapoint control",
   "author": {
     "name": "bloop16",
     "email": "bloop16@hotmail.com"
@@ -23,7 +23,9 @@
   "dependencies": {
     "@iobroker/adapter-core": "^3.2.3",
     "@qdrant/qdrant-js": "^1.14.1",
-    "axios": "^1.10.0"
+    "axios": "^1.10.0",
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",

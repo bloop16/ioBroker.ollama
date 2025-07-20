@@ -152,6 +152,81 @@
 		  "hidden": "data.useVectorDb === false",
 		  "placeholder": "5",
 		  "newLine": true
+		},
+		"vectorDbCollection": {
+		  "type": "text",
+		  "label": "Vector Collection Name",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "iobroker_datapoints",
+		  "help": "Name of the Qdrant collection to use for storing embeddings.",
+		  "hidden": "data.useVectorDb === false",
+		  "placeholder": "iobroker_datapoints",
+		  "newLine": true
+		}
+	  }
+	},
+	"ToolServer": {
+	  "type": "panel",
+	  "label": "OpenWebUI Tool Server",
+	  "items": {
+		"enableToolServer": {
+		  "type": "checkbox",
+		  "label": "Enable Tool Server",
+		  "default": true,
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "help": "Enable OpenWebUI Tool Server for RAG functionality (requires Vector Database).",
+		  "hidden": "data.useVectorDb === false",
+		  "newLine": true
+		},
+		"toolServerHost": {
+		  "type": "text",
+		  "label": "Tool Server Host",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "127.0.0.1",
+		  "help": "Host interface for the Tool Server to bind to.",
+		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
+		  "placeholder": "127.0.0.1",
+		  "newLine": true
+		},
+		"toolServerPort": {
+		  "type": "number",
+		  "label": "Tool Server Port",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": 9100,
+		  "help": "Port for the Tool Server to listen on.",
+		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
+		  "placeholder": "9100",
+		  "newLine": true
+		},
+		"toolServerChatModel": {
+		  "type": "text",
+		  "label": "Tool Server Chat Model",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "llama3.2",
+		  "help": "Model to use for generating answers in RAG queries.",
+		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
+		  "placeholder": "llama3.2",
+		  "newLine": true
 		}
 	  }
 	},

@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "news": {
+            "0.2.1": {
+                "en": "Enhanced Tool Server with complete chat processing, universal model compatibility for RAG integration, automatic fallback system, improved error handling and comprehensive testing framework",
+                "de": "Erweiterter Tool Server mit kompletter Chat-Verarbeitung, universelle Modell-Kompatibilität für RAG-Integration, automatisches Fallback-System, verbesserte Fehlerbehandlung und umfassendes Test-Framework",
+                "ru": "Расширенный Tool Server с полной обработкой чата, универсальная совместимость моделей для RAG-интеграции, автоматическая система резервного копирования, улучшенная обработка ошибок и комплексная тестовая среда",
+                "pt": "Tool Server aprimorado com processamento completo de chat, compatibilidade universal de modelo para integração RAG, sistema de fallback automático, tratamento de erros aprimorado e estrutura de teste abrangente",
+                "nl": "Verbeterde Tool Server met volledige chatverwerking, universele modelcompatibiliteit voor RAG-integratie, automatisch fallback-systeem, verbeterde foutafhandeling en uitgebreid testframework",
+                "fr": "Tool Server amélioré avec traitement de chat complet, compatibilité de modèle universelle pour l'intégration RAG, système de secours automatique, gestion d'erreur améliorée et cadre de test complet",
+                "it": "Tool Server potenziato con elaborazione chat completa, compatibilità modello universale per integrazione RAG, sistema di fallback automatico, gestione errori migliorata e framework di test completo",
+                "es": "Tool Server mejorado con procesamiento de chat completo, compatibilidad de modelo universal para integración RAG, sistema de respaldo automático, manejo de errores mejorado y marco de prueba integral",
+                "pl": "Rozszerzony Tool Server z kompletnym przetwarzaniem czatu, uniwersalna kompatybilność modeli dla integracji RAG, automatyczny system zapasowy, ulepszona obsługa błędów i kompleksowy framework testowy",
+                "uk": "Розширений Tool Server з повною обробкою чату, універсальна сумісність моделей для RAG-інтеграції, автоматична резервна система, покращена обробка помилок та комплексна тестова структура",
+                "zh-cn": "增强的工具服务器，具有完整的聊天处理、RAG集成的通用模型兼容性、自动回退系统、改进的错误处理和全面的测试框架"
+            },
             "0.2.0": {
                 "en": "Vector Database integration with Qdrant, AI Function-Calling for datapoint control, enhanced context-aware responses, simplified codebase",
                 "de": "Vektordatenbank-Integration mit Qdrant, AI Function-Calling für Datenpunkt-Steuerung, verbesserte kontextbasierte Antworten, vereinfachte Codebasis",
@@ -138,7 +151,12 @@
         "vectorDbPort": 6333,
         "embeddingModel": "nomic-embed-text",
         "maxContextResults": 5,
-        "enableDatapointControl": false
+        "vectorDbCollection": "iobroker_datapoints",
+        "enableDatapointControl": false,
+        "enableToolServer": true,
+        "toolServerHost": "0.0.0.0",
+        "toolServerPort": 9099,
+        "toolServerChatModel": "llama3.2"
     },
     "objects": [],
     "instanceObjects": []
