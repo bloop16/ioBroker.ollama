@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "news": {
-            "0.1.0": {
+            "0.2.0": {
                 "en": "Vector Database integration with Qdrant, AI Function-Calling for datapoint control, enhanced context-aware responses, simplified codebase",
                 "de": "Vektordatenbank-Integration mit Qdrant, AI Function-Calling für Datenpunkt-Steuerung, verbesserte kontextbasierte Antworten, vereinfachte Codebasis",
                 "ru": "Интеграция базы данных векторных данных с Qdrant, AI Function Calling для управления DataPoint, улучшенные ответы с учетом контекста, упрощенная кодовая база",
@@ -70,22 +70,23 @@
             "zh-cn": "Ollama"
         },
         "desc": {
-            "en": "AI integration with Ollama, vector database support, and datapoint control",
-            "de": "AI-Integration mit Ollama, Vektordatenbank-Unterstützung und Datenpunkt-Steuerung",
-            "ru": "Интеграция ИИ с Ollama, поддержка векторной базы данных и управление точками данных",
-            "pt": "Integração de IA com Ollama, suporte de banco de dados vetorial e controle de ponto de dados",
-            "nl": "AI-integratie met Ollama, vectordatabase-ondersteuning en datapoint-controle",
-            "fr": "Intégration IA avec Ollama, support de base de données vectorielle et contrôle de point de données",
-            "it": "Integrazione AI con Ollama, supporto database vettoriale e controllo punto dati",
-            "es": "Integración de IA con Ollama, soporte de base de datos vectorial y control de punto de datos",
-            "pl": "Integracja AI z Ollama, wsparcie bazy danych wektorowych i kontrola punktów danych",
-            "uk": "Інтеграція ІІ з Ollama, підтримка векторної бази даних та керування точками даних",
-            "zh-cn": "与Ollama的AI集成，向量数据库支持和数据点控制"
+            "en": "AI integration with OpenWebUI, vector database support, and datapoint control",
+            "de": "AI-Integration mit OpenWebUI, Vektordatenbank-Unterstützung und Datenpunkt-Steuerung",
+            "ru": "Интеграция ИИ с OpenWebUI, поддержка векторной базы данных и управление точками данных",
+            "pt": "Integração de IA com OpenWebUI, suporte de banco de dados vetorial e controle de ponto de dados",
+            "nl": "AI-integratie met OpenWebUI, vectordatabase-ondersteuning en datapoint-controle",
+            "fr": "Intégration IA avec OpenWebUI, support de base de données vectorielle et contrôle de point de données",
+            "it": "Integrazione AI con OpenWebUI, supporto database vettoriale e controllo punto dati",
+            "es": "Integración de IA con OpenWebUI, soporte de base de datos vectorial y control de punto de datos",
+            "pl": "Integracja AI z OpenWebUI, wsparcie bazy danych wektorowych i kontrola punktów danych",
+            "uk": "Інтеграція ІІ з OpenWebUI, підтримка векторної бази даних та керування точками даних",
+            "zh-cn": "与OpenWebUI的AI集成，向量数据库支持和数据点控制"
         },
         "authors": [
             "bloop16 <bloop16@hotmail.com>"
         ],
         "keywords": [
+            "openwebui",
             "ollama",
             "ai",
             "artificial intelligence",
@@ -126,8 +127,11 @@
         ]
     },
     "native": {
+        "openWebUIIp": "127.0.0.1",
+        "openWebUIPort": 3000,
         "ollamaIp": "127.0.0.1",
         "ollamaPort": 11434,
+        "openWebUIApiKey": "",
         "checkOllamaModelRunning": 60000,
         "useVectorDb": false,
         "vectorDbIp": "127.0.0.1",

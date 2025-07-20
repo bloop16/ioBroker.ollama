@@ -1,7 +1,7 @@
 {
   "name": "iobroker.ollama",
-  "version": "0.1.0",
-  "description": "AI integration with Ollama, vector database support, and datapoint control",
+  "version": "0.2.0",
+  "description": "AI integration with OpenWebUI, vector database support, and datapoint control",
   "author": {
     "name": "bloop16",
     "email": "bloop16@hotmail.com"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "keywords": [
     "AI",
-    "ollama",
+    "OpenWebUI",
     "ioBroker"
   ],
   "repository": {

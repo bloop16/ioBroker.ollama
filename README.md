@@ -11,11 +11,11 @@
 
 ## Ollama Adapter for ioBroker
 
-The ioBroker Ollama adapter provides a comprehensive AI integration solution that enables communication with an Ollama server and allows you to use AI models directly from ioBroker. This adapter combines traditional chat functionality with advanced features like vector database integration and AI-driven datapoint control.
+The ioBroker Ollama adapter provides a comprehensive AI integration solution that enables communication with Ollama servers through OpenWebUI frontend and allows you to use AI models directly from ioBroker. OpenWebUI serves as an optional web interface that sits on top of Ollama, providing enhanced API capabilities while still using Ollama as the underlying AI engine. This adapter combines traditional chat functionality with advanced features like vector database integration and AI-driven datapoint control.
 
 ### Description
 
-This adapter transforms your ioBroker system into an AI-powered home automation hub by integrating with Ollama's local language models. It offers two main operational modes:
+This adapter transforms your ioBroker system into an AI-powered home automation hub by integrating with Ollama's local language models through OpenWebUI. OpenWebUI is a modern web interface that provides enhanced API capabilities while using Ollama as the backend AI engine. The adapter can work with both OpenWebUI (recommended) and direct Ollama connections, offering two main operational modes:
 
 1. **Traditional Chat Mode**: Direct communication with AI models through ioBroker datapoints
 2. **Enhanced AI Mode**: Advanced functionality including vector database integration and automatic datapoint control
@@ -29,6 +29,13 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
   - At least one language model installed (e.g., `llama3.2`, `mistral`)
   - For vector database features: embedding model (e.g., `nomic-embed-text`)
 
+- **OpenWebUI (Recommended)**: 
+  - Modern web interface that runs on top of Ollama
+  - Provides enhanced API capabilities and chat completions endpoint
+  - Reachable via network (default: localhost:3000)
+  - API key authentication support
+  - Falls back to direct Ollama if not available
+
 #### Optional Dependencies (for enhanced features)
 - **Qdrant Vector Database**:
   - Version 1.0 or higher
@@ -40,15 +47,20 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
 1. Install Ollama server on your system or network
 2. Pull required models: `ollama pull llama3.2` (or your preferred model)
 3. For vector features: `ollama pull nomic-embed-text`
-4. (Optional) Install and configure Qdrant vector database
-5. Install the adapter from ioBroker admin interface
+4. (Recommended) Install OpenWebUI as frontend: `docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main`
+5. (Optional) Install and configure Qdrant vector database
+6. Install the adapter from ioBroker admin interface
+7. Configure the adapter with your server URLs and API credentials
 
 ### Main Features
 
+- **Dual Connection Support**: Works with both OpenWebUI (recommended) and direct Ollama connections
 - **Model Auto-Discovery**: Automatic detection and creation of all available Ollama models as channels and states
 - **Complete Chat API**: Send messages to models via states under `models.<modelId>.messages.*` (role, content, images, tool_calls, etc.)
 - **Full Parameter Support**: Support for all Ollama parameters (`tools`, `think`, `format`, `options`, `stream`, `keep_alive`)
-- **Real-time Monitoring**: Status monitoring shows if a model is loaded/running and when it expires
+- **Real-time Monitoring**: Status monitoring shows if a model is loaded/running and when it expires via direct Ollama connection
+- **OpenWebUI Integration**: Enhanced chat completions API with Bearer token authentication
+- **Automatic Fallback**: Falls back to direct Ollama connection if OpenWebUI is unavailable
 - **Vector Database Integration**: Uses Qdrant for storing and retrieving context-aware embeddings
 - **AI Function-Calling**: Automatic datapoint control based on AI model responses
 - **Context-Enhanced Chat**: Automatically enhances chat messages with relevant datapoint context
@@ -116,23 +128,31 @@ Each formatted entry includes:
 ### Notes
 
 - The adapter logic is designed to react only to changes in the `messages.content` state and then reads the current configuration from all relevant states
-- The payload matches the Ollama API specification exactly
+- Chat requests are sent to OpenWebUI if configured with API key, otherwise falls back to direct Ollama connection
+- Model status monitoring is always performed via direct Ollama connection for accuracy
+- The payload matches the OpenAI/OpenWebUI chat completions API specification
 - For multi-turn chats, message history can be mapped via states (currently only single message per trigger)
+- OpenWebUI provides additional features like conversation management and user authentication while using Ollama models
 
 ### ToDo
 
 - Check for bugs
 - Add Websearch if wanted
-- Give Ollama the abbility to check all ioBroker States
-- Tool calling
-- Image Analysis
+- Give Ollama the ability to check all ioBroker States
+- Enhanced Function calling capabilities
+- Multi-turn conversation support
+- Image Analysis through OpenWebUI
+- OpenWebUI user management integration
 
 ## Changelog
 
 ### 0.1.0
+* OpenWebUI integration with automatic fallback to direct Ollama
+* Enhanced chat completions API support with Bearer token authentication  
 * Vector Database integration with Qdrant
 * AI Function-Calling for datapoint control
-* enhanced context-aware responses
+* Enhanced context-aware responses
+* Improved connection handling and error recovery
 
 ### 0.0.3
 * Ready for first public release
@@ -149,12 +169,13 @@ Each formatted entry includes:
 
 ### 0.0.1
 * Automatic detection and creation of all Ollama models as channels and states
-* Send messages and configuration parameters to Ollama models
-* Build the payload for the Ollama /api/chat endpoint from individual states
+* Send messages and configuration parameters to AI models via OpenWebUI or direct Ollama
+* Build the payload for OpenWebUI chat completions and Ollama /api/chat endpoints from individual states
 * Support for all relevant optional parameters (tools, think, format, options, stream, keep_alive)
 * Response and details are saved as states
-* Status monitoring of models (running, expires)
+* Status monitoring of models via direct Ollama connection (running, expires)
 * Multilingual interface
+* Automatic fallback between OpenWebUI and Ollama connections
 
 ## License
 MIT License

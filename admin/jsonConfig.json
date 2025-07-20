@@ -2,9 +2,9 @@
   "i18n": true,
   "type": "tabs",
   "items": {
-	"Ollama": {
+	"Connection": {
 	  "type": "panel",
-	  "label": "Ollama",
+	  "label": "Connection", 
 	  "items": {
 		"ollamaIp": {
 		  "type": "text",
@@ -14,8 +14,8 @@
 		  "md": 6,
 		  "lg": 6,
 		  "xl": 6,
-		  "placeholder": "192.168.0.204",
-		  "help": "IP address of the Ollama server.",
+		  "default": "127.0.0.1",
+		  "help": "IP address or hostname of the direct Ollama server (for status monitoring).",
 		  "newLine": true
 		},
 		"ollamaPort": {
@@ -26,20 +26,58 @@
 		  "md": 6,
 		  "lg": 6,
 		  "xl": 6,
-		  "help": "Port of the Ollama server.",
+		  "default": 11434,
+		  "help": "Port of the direct Ollama server (default: 11434).",
 		  "placeholder": "11434",
 		  "newLine": true
 		},
+		"openWebUIIp": {
+		  "type": "text",
+		  "label": "OpenWebUI Server IP",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": "127.0.0.1",
+		  "help": "IP address or hostname of the OpenWebUI server.",
+		  "newLine": true
+		},
+		"openWebUIPort": {
+		  "type": "number",
+		  "label": "OpenWebUI Server Port",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "default": 3000,
+		  "help": "Port of the OpenWebUI server.",
+		  "placeholder": "3000",
+		  "newLine": true
+		},
+		"openWebUIApiKey": {
+		  "type": "password",
+		  "label": "OpenWebUI API Key",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 12,
+		  "lg": 12,
+		  "xl": 12,
+		  "default": "",
+		  "help": "API Key for OpenWebUI authentication (Bearer Token). Get it from Settings > Account in OpenWebUI.",
+		  "newLine": true
+		},	
 		"checkOllamaModelRunning": {
 		  "type": "number",
-		  "label": "Check if Ollama model is running",
+		  "label": "Check model status interval",
 		  "xs": 12,
 		  "sm": 10,
 		  "md": 4,
 		  "lg": 4,
 		  "xl": 4,
 		  "default": 60000,
-		  "help": "Timer to check if the Ollama model is running. Set to 0 to disable.",
+		  "help": "Timer to check model availability via direct Ollama connection. Set to 0 to disable.",
 		  "placeholder": "60000"
 		}
 	  }
@@ -69,7 +107,8 @@
 		  "lg": 6,
 		  "xl": 6,
 		  "default": "127.0.0.1",
-		  "help": "IP address of the Qdrant server.",
+		  "help": "IP address or hostname of the Qdrant server.",
+		  "hidden": "data.useVectorDb === false",
 		  "newLine": true
 		},
 		"vectorDbPort": {
@@ -82,6 +121,8 @@
 		  "xl": 6,
 		  "default": 6333,
 		  "help": "Port of the Qdrant server.",
+		  "hidden": "data.useVectorDb === false",
+		  "placeholder": "6333",
 		  "newLine": true
 		},
 		"embeddingModel": {
@@ -93,7 +134,9 @@
 		  "lg": 6,
 		  "xl": 6,
 		  "default": "nomic-embed-text",
-		  "help": "Name of the Ollama embedding model to use.",
+		  "help": "Model to use for generating embeddings.",
+		  "hidden": "data.useVectorDb === false",
+		  "placeholder": "nomic-embed-text",
 		  "newLine": true
 		},
 		"maxContextResults": {
@@ -105,25 +148,27 @@
 		  "lg": 6,
 		  "xl": 6,
 		  "default": 5,
-		  "help": "Maximum number of context results from vector database to include in chat.",
+		  "help": "Maximum number of context results to include in queries.",
+		  "hidden": "data.useVectorDb === false",
+		  "placeholder": "5",
 		  "newLine": true
 		}
 	  }
 	},
-	"Control": {
+	"FunctionCalling": {
 	  "type": "panel",
-	  "label": "Control",
+	  "label": "Function Calling",
 	  "items": {
 		"enableDatapointControl": {
 		  "type": "checkbox",
 		  "label": "Enable Datapoint Control",
+		  "default": false,
 		  "xs": 12,
 		  "sm": 12,
 		  "md": 6,
 		  "lg": 6,
 		  "xl": 6,
-		  "default": false,
-		  "help": "Allow AI models to automatically change datapoints based on their responses (e.g., '... is now available').",
+		  "help": "Allow AI models to control ioBroker datapoints via function calls.",
 		  "newLine": true
 		}
 	  }
