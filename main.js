@@ -4,6 +4,7 @@ const utils = require("@iobroker/adapter-core");
 const QdrantHelper = require("./lib/qdrantClient");
 const OllamaClient = require("./lib/ollamaClient");
 const ToolServer = require("./lib/toolServer");
+const DatapointController = require("./lib/datapointController");
 
 class ollama extends utils.Adapter {
 
@@ -21,6 +22,7 @@ class ollama extends utils.Adapter {
 		this._enabledDatapoints = new Set(); // track both embedding and auto-change enabled datapoints
 		this._processedStates = new Set(); // track processed state changes to prevent duplicates
 		this.toolServer = null;         // OpenWebUI tool server instance
+		this.datapointController = null; // DatapointController for function calling
 		this.on("ready", this.onReady.bind(this));
 		this.on("stateChange", this.onStateChange.bind(this));
 		this.on("objectChange", this.onObjectChange.bind(this));
@@ -56,6 +58,10 @@ class ollama extends utils.Adapter {
 				toolServerUrl,
 				this.config
 			);
+
+			// Initialize DatapointController for function calling
+			this.datapointController = new DatapointController(this, this.log);
+			this.log.debug('[DatapointController] Controller initialized successfully');
 
 			// Test OpenWebUI connection and API key if configured
 			let openWebUIAvailable = false;
@@ -94,6 +100,9 @@ class ollama extends utils.Adapter {
 
 			// Check for existing objects with embeddingEnabled on startup
 			await QdrantHelper.checkExistingEmbeddingEnabled(this);
+
+			// Initialize DatapointController with current allowed datapoints
+			await this.updateDatapointControllerAllowedDatapoints();
 
 			const models = await this.ollamaClient.fetchModels();
 			this.log.info(`Fetched models: ${models.join(", ")}`);
@@ -207,16 +216,79 @@ class ollama extends utils.Adapter {
 					this._enabledDatapoints.delete(id);
 					this.unsubscribeForeignStates(id);
 				}
+				
+				// Update DatapointController with allowed datapoints (allowAutoChange)
+				if (this.datapointController) {
+					const allowedDatapoints = new Set();
+					for (const datapointId of this._enabledDatapoints) {
+						try {
+							const dpObj = await this.getForeignObjectAsync(datapointId);
+							if (dpObj?.common?.custom?.[this.namespace]?.allowAutoChange === true) {
+								allowedDatapoints.add(datapointId);
+							}
+						} catch (error) {
+							this.log.debug(`[DatapointController] Error checking allowAutoChange for ${datapointId}: ${error.message}`);
+						}
+					}
+					this.datapointController.setAllowedDatapoints(allowedDatapoints);
+					this.log.debug(`[DatapointController] Updated allowed datapoints: ${allowedDatapoints.size} of ${this._enabledDatapoints.size} enabled datapoints have allowAutoChange=true`);
+				}
 			} else {
 				// Object deleted or custom config removed
 				if (this._enabledDatapoints.has(id)) {
 					this._enabledDatapoints.delete(id);
 					this.unsubscribeForeignStates(id);
+					
+					// Update DatapointController
+					if (this.datapointController) {
+						const allowedDatapoints = new Set();
+						for (const datapointId of this._enabledDatapoints) {
+							try {
+								const dpObj = await this.getForeignObjectAsync(datapointId);
+								if (dpObj?.common?.custom?.[this.namespace]?.allowAutoChange === true) {
+									allowedDatapoints.add(datapointId);
+								}
+							} catch (error) {
+								this.log.debug(`[DatapointController] Error checking allowAutoChange for ${datapointId}: ${error.message}`);
+							}
+						}
+						this.datapointController.setAllowedDatapoints(allowedDatapoints);
+						this.log.debug(`[DatapointController] Updated allowed datapoints after removal: ${allowedDatapoints.size} of ${this._enabledDatapoints.size} enabled datapoints have allowAutoChange=true`);
+					}
 				}
 			}
 		} catch (error) {
 			this.log.error(`Error in onObjectChange for ${id}: ${error.message}`);
 		}
+	}
+
+	/**
+	 * Update DatapointController with currently allowed datapoints
+	 * Scans all enabled datapoints and adds those with allowAutoChange=true
+	 */
+	async updateDatapointControllerAllowedDatapoints() {
+		if (!this.datapointController) {
+			this.log.debug('[DatapointController] Controller not initialized, skipping update');
+			return;
+		}
+
+		const allowedDatapoints = new Set();
+		this.log.debug(`[DatapointController] Checking ${this._enabledDatapoints.size} enabled datapoints for allowAutoChange`);
+
+		for (const datapointId of this._enabledDatapoints) {
+			try {
+				const dpObj = await this.getForeignObjectAsync(datapointId);
+				if (dpObj?.common?.custom?.[this.namespace]?.allowAutoChange === true) {
+					allowedDatapoints.add(datapointId);
+					this.log.debug(`[DatapointController] Added ${datapointId} to allowed datapoints (allowAutoChange=true)`);
+				}
+			} catch (error) {
+				this.log.debug(`[DatapointController] Error checking allowAutoChange for ${datapointId}: ${error.message}`);
+			}
+		}
+
+		this.datapointController.setAllowedDatapoints(allowedDatapoints);
+		this.log.info(`[DatapointController] Initialized with ${allowedDatapoints.size} allowed datapoints for automatic state changes`);
 	}
 
 	/**
@@ -232,7 +304,7 @@ class ollama extends utils.Adapter {
 
 			this.log.info('[ToolServer] Starting OpenWebUI Tool Server...');
 			
-			this.toolServer = new ToolServer(this.config, this.log, this._enabledDatapoints);
+			this.toolServer = new ToolServer(this.config, this.log, this._enabledDatapoints, this.datapointController);
 			const started = await this.toolServer.start();
 			
 			if (started) {
