@@ -53,7 +53,8 @@ class ollama extends utils.Adapter {
 				this.log,
 				this.config.openWebUIApiKey,
 				(stateId, value, ack) => this.setState(stateId, value, ack),
-				toolServerUrl
+				toolServerUrl,
+				this.config
 			);
 
 			// Test OpenWebUI connection and API key if configured
@@ -109,7 +110,17 @@ class ollama extends utils.Adapter {
 				
 				// Start Tool Server if vector database is enabled and adapter is connected
 				if (this.config.useVectorDb && this.config.enableToolServer !== false) {
-					await this.startToolServer();
+					// Check if port is already in use before attempting to start
+					const toolServerPort = this.config.toolServerPort || 9099;
+					try {
+						const response = await this._axios.get(`http://localhost:${toolServerPort}/health`, { timeout: 1000 });
+						if (response.status === 200) {
+							this.log.info(`[ToolServer] Tool Server already running on port ${toolServerPort} - skipping startup`);
+						}
+					} catch (error) {
+						// Port is free or server not responding - safe to start
+						await this.startToolServer();
+					}
 				}
 			} else {
 				await this.setConnected(false);

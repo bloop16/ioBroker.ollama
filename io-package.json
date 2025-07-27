@@ -156,7 +156,9 @@
         "enableToolServer": true,
         "toolServerHost": "0.0.0.0",
         "toolServerPort": 9099,
-        "toolServerChatModel": "llama3.2"
+        "toolServerChatModel": "llama3.2",
+        "temperature": 0.7,
+        "maxTokens": 2048
     },
     "objects": [],
     "instanceObjects": []

@@ -73,5 +73,9 @@
     "Value used for TRUE.": "Valeur utilisée pour true.",
     "Value used for FALSE.": "Valeur utilisée pour false.",
     "Additional text for text type.": "Texte supplémentaire pour le type de texte.",
-    "Original Model Name": "Nom du modèle original"
+    "Original Model Name": "Nom du modèle original",
+    "Temperature": "Température",
+    "Controls randomness in AI responses (0.0 = deterministic, 1.0 = very creative)": "Contrôle le caractère aléatoire dans les réponses d'IA (0,0 = déterministe, 1,0 = très créatif)",
+    "Max Tokens": "Jetons max",
+    "Maximum number of tokens in AI response": "Nombre maximum de jetons dans la réponse IA"
 }

@@ -227,6 +227,40 @@
 		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
 		  "placeholder": "llama3.2",
 		  "newLine": true
+		},
+		"temperature": {
+		  "type": "number",
+		  "label": "Temperature",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "min": 0.0,
+		  "max": 2.0,
+		  "step": 0.1,
+		  "default": 0.7,
+		  "help": "Controls randomness in AI responses (0.0 = deterministic, 1.0 = very creative)",
+		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
+		  "placeholder": "0.7",
+		  "newLine": true
+		},
+		"maxTokens": {
+		  "type": "number",
+		  "label": "Max Tokens",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 6,
+		  "lg": 6,
+		  "xl": 6,
+		  "min": 100,
+		  "max": 8192,
+		  "step": 1,
+		  "default": 2048,
+		  "help": "Maximum number of tokens in AI response",
+		  "hidden": "data.useVectorDb === false || data.enableToolServer === false",
+		  "placeholder": "2048",
+		  "newLine": true
 		}
 	  }
 	},
