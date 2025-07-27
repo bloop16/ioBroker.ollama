@@ -279,6 +279,18 @@
 		  "xl": 6,
 		  "help": "Allow AI models to control ioBroker datapoints via function calls.",
 		  "newLine": true
+		},
+		"automaticControlWhitelist": {
+		  "type": "text",
+		  "label": "Automatic Control Whitelist",
+		  "xs": 12,
+		  "sm": 12,
+		  "md": 12,
+		  "lg": 12,
+		  "xl": 12,
+		  "default": "schalte * ein|schalte * aus|setze * auf *|stelle * auf *|mache * an|mache * aus|turn * on|turn * off|set * to *|switch * on|switch * off|activate *|deactivate *",
+		  "help": "Whitelist of command patterns that trigger automatic datapoint control. Use * as wildcard. Separate patterns with | (pipe). Only messages matching these patterns will trigger commands.",
+		  "newLine": true
 		}
 	  }
 	}

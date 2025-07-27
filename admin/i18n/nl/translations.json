@@ -77,5 +77,7 @@
     "Temperature": "Temperatuur",
     "Controls randomness in AI responses (0.0 = deterministic, 1.0 = very creative)": "Controleert willekeur in AI -reacties (0,0 = deterministisch, 1.0 = zeer creatief)",
     "Max Tokens": "Max tokens",
-    "Maximum number of tokens in AI response": "Maximaal aantal tokens in AI -reactie"
+    "Maximum number of tokens in AI response": "Maximaal aantal tokens in AI -reactie",
+    "Automatic Control Whitelist": "Automatische besturingshaak",
+    "Whitelist of command patterns that trigger automatic datapoint control. Use * as wildcard. Separate patterns with | (pipe). Only messages matching these patterns will trigger commands.": "Whitelist van opdrachtpatronen die automatische datapoint -besturingselement activeren. Gebruik * als wildcard. Afzonderlijke patronen met | (pijp). Alleen berichten die overeenkomen met deze patronen zullen opdrachten activeren."
 }

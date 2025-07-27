@@ -40,6 +40,25 @@ class ollama extends utils.Adapter {
 		try {
 			this.log.debug(`OpenWebUI Server: ${this.config.openWebUIIp}:${this.config.openWebUIPort}`);
 			this.log.debug(`Ollama Server: ${this.config.ollamaIp}:${this.config.ollamaPort}`);
+			this.log.debug(`[Startup] Adapter PID: ${process.pid}, Instance: ${this.namespace}`);
+
+			// Check if another adapter instance is already running (development mode safety)
+			try {
+				const { exec } = require('child_process');
+				const { promisify } = require('util');
+				const execAsync = promisify(exec);
+				
+				const { stdout } = await execAsync(`ps aux | grep "io.ollama.0" | grep -v grep | wc -l`);
+				const instanceCount = parseInt(stdout.trim());
+				
+				if (instanceCount > 1) {
+					this.log.warn(`[Startup] Multiple adapter instances detected (${instanceCount}). This may cause conflicts.`);
+					this.log.info('[Startup] This instance will continue but may share resources with other instances.');
+				}
+			} catch (error) {
+				// Ignore process check errors - not critical
+				this.log.debug(`[Startup] Process check failed: ${error.message}`);
+			}
 
 			await this.ensureInfoStates();
 			
@@ -117,19 +136,23 @@ class ollama extends utils.Adapter {
 				await this.setConnected(true);
 				this.log.info(`[Connection] Adapter connected successfully (OpenWebUI: ${openWebUIAvailable ? 'Yes' : 'No'}, Models: ${models.length})`);
 				
-				// Start Tool Server if vector database is enabled and adapter is connected
-				if (this.config.useVectorDb && this.config.enableToolServer !== false) {
-					// Check if port is already in use before attempting to start
-					const toolServerPort = this.config.toolServerPort || 9099;
-					try {
-						const response = await this._axios.get(`http://localhost:${toolServerPort}/health`, { timeout: 1000 });
-						if (response.status === 200) {
-							this.log.info(`[ToolServer] Tool Server already running on port ${toolServerPort} - skipping startup`);
-						}
-					} catch (error) {
-						// Port is free or server not responding - safe to start
+				// Start Tool Server only if explicitly enabled in configuration
+				if (this.config.useVectorDb && this.config.enableToolServer === true) {
+					// Check if another Tool Server instance is already running using the controller
+					const ToolServerController = require("./lib/toolServerController");
+					const controller = new ToolServerController();
+					
+					const isAlreadyRunning = await controller.isRunning();
+					if (isAlreadyRunning) {
+						const runningInstance = controller.getRunningInstance();
+						this.log.info(`[ToolServer] Tool Server already running (PID: ${runningInstance?.pid}, Port: ${runningInstance?.port}) - this adapter instance will use the existing server`);
+					} else {
+						// No instance running, safe to start
+						this.log.debug('[ToolServer] No running ToolServer detected, starting new instance...');
 						await this.startToolServer();
 					}
+				} else if (this.config.useVectorDb && this.config.enableToolServer !== true) {
+					this.log.debug('[ToolServer] Tool Server disabled in configuration - skipping startup');
 				}
 			} else {
 				await this.setConnected(false);
@@ -297,12 +320,25 @@ class ollama extends utils.Adapter {
 	 */
 	async startToolServer() {
 		try {
+			// Check if our own instance is already running
 			if (this.toolServer && this.toolServer.isRunning()) {
-				this.log.warn('[ToolServer] Tool server already running');
+				this.log.debug('[ToolServer] Tool server already running in this adapter instance');
 				return;
 			}
 
-			this.log.info('[ToolServer] Starting OpenWebUI Tool Server...');
+			// Check if another Tool Server instance is already running system-wide
+			const ToolServerController = require("./lib/toolServerController");
+			const controller = new ToolServerController();
+			
+			const isAlreadyRunning = await controller.isRunning();
+			if (isAlreadyRunning) {
+				const runningInstance = controller.getRunningInstance();
+				this.log.debug(`[ToolServer] Another Tool Server instance is already running (PID: ${runningInstance?.pid}, Port: ${runningInstance?.port})`);
+				this.log.info('[ToolServer] Using existing Tool Server instance - no new instance needed');
+				return;
+			}
+
+			this.log.info('[ToolServer] Starting new OpenWebUI Tool Server instance...');
 			
 			this.toolServer = new ToolServer(this.config, this.log, this._enabledDatapoints, this.datapointController);
 			const started = await this.toolServer.start();
@@ -386,11 +422,23 @@ class ollama extends utils.Adapter {
 	 */
 	onUnload(callback) {
 		try {
-			// Stop Tool Server first
+			// Stop Tool Server first - ensure proper cleanup
 			if (this.toolServer) {
-				this.stopToolServer().catch(err => {
+				this.stopToolServer().then(() => {
+					this.log.debug('[ToolServer] Tool Server stopped during adapter unload');
+				}).catch(err => {
 					this.log.error(`Error stopping Tool Server: ${err.message}`);
 				});
+			}
+			
+			// Additional cleanup: Ensure Tool Server controller cleanup
+			try {
+				const ToolServerController = require("./lib/toolServerController");
+				const controller = new ToolServerController();
+				controller.cleanup();
+				this.log.debug('[ToolServer] Controller cleanup completed');
+			} catch (cleanupError) {
+				this.log.debug(`[ToolServer] Controller cleanup error (non-critical): ${cleanupError.message}`);
 			}
 			
 			// Stop all intervals

@@ -158,7 +158,8 @@
         "toolServerPort": 9099,
         "toolServerChatModel": "llama3.2",
         "temperature": 0.7,
-        "maxTokens": 2048
+        "maxTokens": 2048,
+        "automaticControlWhitelist": "schalte * ein|schalte * aus|setze * auf *|stelle * auf *|mache * an|mache * aus|turn * on|turn * off|set * to *|switch * on|switch * off|activate *|deactivate *"
     },
     "objects": [],
     "instanceObjects": []
