@@ -24,7 +24,7 @@
     "@iobroker/adapter-core": "^3.2.3",
     "@qdrant/qdrant-js": "^1.14.1",
     "axios": "^1.10.0",
-    "express": "^4.21.0",
+    "express": "^5.1.0",
     "cors": "^2.8.5"
   },
   "devDependencies": {
