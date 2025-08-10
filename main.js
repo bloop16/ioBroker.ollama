@@ -30,35 +30,15 @@ class ollama extends utils.Adapter {
 	}
 
 	translate(key) {
-		if (this._translations[key]) {
-			return this._translations[key];
-		}
-		return key;
+		// Use ioBroker's built-in translation system
+		// The translations are loaded from admin/i18n/{language}/translations.json
+		return this._translations[key] || key;
 	}
 
 	async onReady() {
 		try {
 			this.log.debug(`OpenWebUI Server: ${this.config.openWebUIIp}:${this.config.openWebUIPort}`);
 			this.log.debug(`Ollama Server: ${this.config.ollamaIp}:${this.config.ollamaPort}`);
-			this.log.debug(`[Startup] Adapter PID: ${process.pid}, Instance: ${this.namespace}`);
-
-			// Check if another adapter instance is already running (development mode safety)
-			try {
-				const { exec } = require('child_process');
-				const { promisify } = require('util');
-				const execAsync = promisify(exec);
-				
-				const { stdout } = await execAsync(`ps aux | grep "io.ollama.0" | grep -v grep | wc -l`);
-				const instanceCount = parseInt(stdout.trim());
-				
-				if (instanceCount > 1) {
-					this.log.warn(`[Startup] Multiple adapter instances detected (${instanceCount}). This may cause conflicts.`);
-					this.log.info('[Startup] This instance will continue but may share resources with other instances.');
-				}
-			} catch (error) {
-				// Ignore process check errors - not critical
-				this.log.debug(`[Startup] Process check failed: ${error.message}`);
-			}
 
 			await this.ensureInfoStates();
 			
@@ -66,33 +46,49 @@ class ollama extends utils.Adapter {
 			this._serverUrlBase = `http://${this.config.openWebUIIp}:${this.config.openWebUIPort}`;
 			this._ollamaUrlBase = `http://${this.config.ollamaIp}:${this.config.ollamaPort}`;
 
-			// Initialize simplified OllamaClient
-			const toolServerUrl = `http://localhost:${this.config.toolServerPort || 9099}`;
+			// Initialize simplified OllamaClient with ioBroker i18n support
 			this.ollamaClient = new OllamaClient(
 				this._serverUrlBase,
-				this._ollamaUrlBase,
 				this.log,
-				this.config.openWebUIApiKey,
-				(stateId, value, ack) => this.setState(stateId, value, ack),
-				toolServerUrl,
-				this.config
+				{
+					...this.config,
+					ollamaUrl: this._ollamaUrlBase,
+					toolServerUrl: undefined, // Will be set after ToolServer starts
+					apiKey: this.config.openWebUIApiKey,
+					setStateCallback: (stateId, value, ack) => this.setState(stateId, value, ack)
+				},
+				this.translate.bind(this)
 			);
 
 			// Initialize DatapointController for function calling
-			this.datapointController = new DatapointController(this, this.log);
+			this.datapointController = new DatapointController(this, new Set(), this.log, this.translate.bind(this));
 			this.log.debug('[DatapointController] Controller initialized successfully');
 
-			// Test OpenWebUI connection and API key if configured
+			// Test OpenWebUI connection
 			let openWebUIAvailable = false;
-			if (this.config.openWebUIApiKey && this.config.openWebUIApiKey.trim() !== '') {
-				openWebUIAvailable = await this.ollamaClient.testOpenWebUIConnection();
-				if (!openWebUIAvailable) {
-					this.log.error('OpenWebUI connection failed or API key invalid. Adapter will not be marked as connected.');
-					await this.setConnected(false);
-					// Don't return - continue with direct Ollama fallback
+			try {
+				const response = await this._axios.get(`${this._serverUrlBase}/api/models`, {
+					headers: this.config.openWebUIApiKey ? { 'Authorization': `Bearer ${this.config.openWebUIApiKey}` } : {},
+					timeout: 5000
+				});
+				openWebUIAvailable = response.status === 200;
+				if (openWebUIAvailable) {
+					this.log.info(`[OpenWebUI] Connection successful`);
 				}
-			} else {
-				this.log.warn('No OpenWebUI API key configured. Direct Ollama fallback will be used.');
+			} catch (error) {
+				this.log.error(`[OpenWebUI] Connection test failed: ${error.message}`);
+			}
+
+			// Test direct Ollama connection
+			let ollamaAvailable = false;
+			try {
+				const models = await this.ollamaClient.fetchModels();
+				ollamaAvailable = models.length > 0;
+				if (ollamaAvailable) {
+					this.log.info(`[Ollama] Connection successful, found ${models.length} models`);
+				}
+			} catch (error) {
+				this.log.error(`[Ollama] Connection test failed: ${error.message}`);
 			}
 			
 			// If Qdrant database is enabled, verify availability before proceeding
@@ -131,32 +127,47 @@ class ollama extends utils.Adapter {
 				this.log.debug(`[Setup] Model ${index + 1}: "${model}"`);
 			});
 			
-			// Only mark as connected if we have a working connection (OpenWebUI or direct Ollama)
-			if (openWebUIAvailable || models.length > 0) {
+			// Only mark as connected if we have a working Ollama connection
+			if (ollamaAvailable && models.length > 0) {
 				await this.setConnected(true);
-				this.log.info(`[Connection] Adapter connected successfully (OpenWebUI: ${openWebUIAvailable ? 'Yes' : 'No'}, Models: ${models.length})`);
-				
-				// Start Tool Server only if explicitly enabled in configuration
-				if (this.config.useVectorDb && this.config.enableToolServer === true) {
-					// Check if another Tool Server instance is already running using the controller
-					const ToolServerController = require("./lib/toolServerController");
-					const controller = new ToolServerController();
-					
-					const isAlreadyRunning = await controller.isRunning();
-					if (isAlreadyRunning) {
-						const runningInstance = controller.getRunningInstance();
-						this.log.info(`[ToolServer] Tool Server already running (PID: ${runningInstance?.pid}, Port: ${runningInstance?.port}) - this adapter instance will use the existing server`);
-					} else {
-						// No instance running, safe to start
-						this.log.debug('[ToolServer] No running ToolServer detected, starting new instance...');
-						await this.startToolServer();
+				this.log.info(`[Connection] Adapter connected successfully (Ollama: ${ollamaAvailable ? 'Yes' : 'No'}, Models: ${models.length})`);
+
+				// Start ToolServer now when everything is ready
+				if (this.config.enableToolServer === true) {
+					try {
+						this.log.info('[ToolServer] Starting ToolServer...');
+						this.toolServer = new ToolServer(this.config, this.log, this._enabledDatapoints, this.datapointController, this);
+						const started = await this.toolServer.start();
+						
+						if (started) {
+							this.log.info('[ToolServer] ToolServer started successfully');
+							
+							// Update OllamaClient with actual ToolServer URL using configured host
+							const actualPort = this.toolServer.getPort();
+							const toolServerHost = this.config.toolServerHost || '127.0.0.1';
+							const toolServerUrl = `http://${toolServerHost}:${actualPort}`;
+							this.ollamaClient.setToolServerUrl(toolServerUrl);
+							this.log.info(`[ToolServer] OllamaClient configured to use ToolServer at ${toolServerUrl}`);
+							
+							// Configure LLM-based intent detection
+							this.toolServer.configureOllamaIntentDetection(this.ollamaClient);
+							this.log.info('[ToolServer] LLM-based intent detection configured');
+						} else {
+							this.log.warn('[ToolServer] ToolServer could not be started - continuing without tool functionality');
+						}
+					} catch (error) {
+						if (error.message.includes('already running')) {
+							this.log.warn('[ToolServer] ToolServer already running - skipping duplicate instance');
+						} else {
+							this.log.error(`[ToolServer] Error starting ToolServer: ${error.message}`);
+						}
 					}
-				} else if (this.config.useVectorDb && this.config.enableToolServer !== true) {
-					this.log.debug('[ToolServer] Tool Server disabled in configuration - skipping startup');
+				} else {
+					this.log.debug('[ToolServer] ToolServer disabled in configuration');
 				}
 			} else {
 				await this.setConnected(false);
-				this.log.error('[Connection] Neither OpenWebUI nor direct Ollama connection working');
+				this.log.error('[Connection] Ollama connection failed or no models available');
 				return;
 			}
 			
@@ -315,70 +326,6 @@ class ollama extends utils.Adapter {
 	}
 
 	/**
-	 * Start the OpenWebUI Tool Server
-	 * Creates and starts the tool server for RAG functionality
-	 */
-	async startToolServer() {
-		try {
-			// Check if our own instance is already running
-			if (this.toolServer && this.toolServer.isRunning()) {
-				this.log.debug('[ToolServer] Tool server already running in this adapter instance');
-				return;
-			}
-
-			// Check if another Tool Server instance is already running system-wide
-			const ToolServerController = require("./lib/toolServerController");
-			const controller = new ToolServerController();
-			
-			const isAlreadyRunning = await controller.isRunning();
-			if (isAlreadyRunning) {
-				const runningInstance = controller.getRunningInstance();
-				this.log.debug(`[ToolServer] Another Tool Server instance is already running (PID: ${runningInstance?.pid}, Port: ${runningInstance?.port})`);
-				this.log.info('[ToolServer] Using existing Tool Server instance - no new instance needed');
-				return;
-			}
-
-			this.log.info('[ToolServer] Starting new OpenWebUI Tool Server instance...');
-			
-			this.toolServer = new ToolServer(this.config, this.log, this._enabledDatapoints, this.datapointController);
-			const started = await this.toolServer.start();
-			
-			if (started) {
-				this.log.info('[ToolServer] OpenWebUI Tool Server started successfully');
-			} else {
-				this.log.warn('[ToolServer] Tool Server could not be started - continuing without tool functionality');
-			}
-		} catch (error) {
-			if (error.code === 'EADDRINUSE') {
-				this.log.warn(`[ToolServer] Port ${this.config.toolServerPort || 9099} is already in use. Tool Server disabled.`);
-				this.log.info('[ToolServer] Adapter will continue running without Tool Server functionality');
-			} else if (error.message.includes('already running')) {
-				this.log.warn('[ToolServer] Tool Server already running - skipping duplicate instance');
-				this.log.info('[ToolServer] Adapter will continue without starting additional Tool Server');
-			} else {
-				this.log.error(`[ToolServer] Error starting Tool Server: ${error.message}`);
-			}
-			// Don't re-throw the error - adapter should continue running
-		}
-	}
-
-	/**
-	 * Stop the OpenWebUI Tool Server
-	 */
-	async stopToolServer() {
-		try {
-			if (this.toolServer && this.toolServer.isRunning()) {
-				this.log.info('[ToolServer] Stopping OpenWebUI Tool Server...');
-				await this.toolServer.stop();
-				this.toolServer = null;
-				this.log.info('[ToolServer] Tool Server stopped');
-			}
-		} catch (error) {
-			this.log.error(`[ToolServer] Error stopping Tool Server: ${error.message}`);
-		}
-	}
-
-	/**
 	 * Ensure required info states exist
 	 * Creates info folder and connection status state if they don't exist
 	 */
@@ -422,25 +369,28 @@ class ollama extends utils.Adapter {
 	 */
 	onUnload(callback) {
 		try {
-			// Stop Tool Server first - ensure proper cleanup
-			if (this.toolServer) {
-				this.stopToolServer().then(() => {
-					this.log.debug('[ToolServer] Tool Server stopped during adapter unload');
+			// Stop ToolServer (without Controller/Lockfile)
+			if (this.toolServer && this.toolServer.isServerRunning()) {
+				this.toolServer.stop().then(() => {
+					this._finishUnload(callback);
 				}).catch(err => {
-					this.log.error(`Error stopping Tool Server: ${err.message}`);
+					this.log.error(`Error stopping ToolServer: ${err.message}`);
+					this._finishUnload(callback);
 				});
+			} else {
+				this._finishUnload(callback);
 			}
-			
-			// Additional cleanup: Ensure Tool Server controller cleanup
-			try {
-				const ToolServerController = require("./lib/toolServerController");
-				const controller = new ToolServerController();
-				controller.cleanup();
-				this.log.debug('[ToolServer] Controller cleanup completed');
-			} catch (cleanupError) {
-				this.log.debug(`[ToolServer] Controller cleanup error (non-critical): ${cleanupError.message}`);
-			}
-			
+		} catch (error) {
+			this.log.error(`Error during adapter shutdown: ${error.message}`);
+			callback();
+		}
+	}
+
+	/**
+	 * Finish the unload process after ToolServer cleanup
+	 */
+	_finishUnload(callback) {
+		try {
 			// Stop all intervals
 			if (this._runningInterval) {
 				clearInterval(this._runningInterval);
@@ -466,7 +416,7 @@ class ollama extends utils.Adapter {
 			
 			callback();
 		} catch (error) {
-			this.log.error(`Error during adapter shutdown: ${error.message}`);
+			this.log.error(`Error during final cleanup: ${error.message}`);
 			callback();
 		}
 	}

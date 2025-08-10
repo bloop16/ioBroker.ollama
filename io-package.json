@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.2.1",
+        "version": "0.3.0",
         "news": {
+            "0.3.0": {
+                "en": "Native ioBroker multilingual support with adaptive intent recognition in 11 languages, complete configuration validation, and dynamic server settings",
+                "de": "Native ioBroker Mehrsprachigkeitsunterstützung mit adaptiver Intent-Erkennung in 11 Sprachen, vollständige Konfigurationsvalidierung und dynamische Server-Einstellungen",
+                "ru": "Нативная поддержка многоязычности ioBroker с адаптивным распознаванием намерений на 11 языках, полная проверка конфигурации и динамические настройки сервера",
+                "pt": "Suporte multilíngue nativo do ioBroker com reconhecimento adaptivo de intenções em 11 idiomas, validação completa de configuração e configurações dinâmicas de servidor",
+                "nl": "Native ioBroker meertalige ondersteuning met adaptieve intentieherkenning in 11 talen, volledige configuratievalidatie en dynamische serverinstellingen",
+                "fr": "Support multilingue natif ioBroker avec reconnaissance adaptative d'intention en 11 langues, validation complète de configuration et paramètres de serveur dynamiques",
+                "it": "Supporto multilingue nativo ioBroker con riconoscimento adattivo delle intenzioni in 11 lingue, validazione completa della configurazione e impostazioni dinamiche del server",
+                "es": "Soporte multilingüe nativo de ioBroker con reconocimiento adaptativo de intenciones en 11 idiomas, validación completa de configuración y configuraciones dinámicas de servidor",
+                "pl": "Natywne wsparcie wielojęzyczne ioBroker z adaptacyjnym rozpoznawaniem intencji w 11 językach, pełna walidacja konfiguracji i dynamiczne ustawienia serwera",
+                "uk": "Нативна підтримка багатомовності ioBroker з адаптивним розпізнаванням намірів на 11 мовах, повна валідація конфігурації та динамічні налаштування сервера",
+                "zh-cn": "原生ioBroker多语言支持，具有11种语言的自适应意图识别、完整配置验证和动态服务器设置"
+            },
             "0.2.1": {
                 "en": "Enhanced Tool Server with complete chat processing, universal model compatibility for RAG integration, automatic fallback system, improved error handling and comprehensive testing framework",
                 "de": "Erweiterter Tool Server mit kompletter Chat-Verarbeitung, universelle Modell-Kompatibilität für RAG-Integration, automatisches Fallback-System, verbesserte Fehlerbehandlung und umfassendes Test-Framework",
@@ -146,8 +159,8 @@
         "ollamaPort": 11434,
         "openWebUIApiKey": "",
         "checkOllamaModelRunning": 60000,
-        "useVectorDb": false,
-        "vectorDbIp": "127.0.0.1",
+        "useVectorDb": true,
+        "vectorDbIp": "192.168.0.204",
         "vectorDbPort": 6333,
         "embeddingModel": "nomic-embed-text",
         "maxContextResults": 5,

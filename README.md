@@ -13,7 +13,7 @@
 This adapter transforms your ioBroker system into an AI-powered home automation hub by integrating with Ollama's local language models through OpenWebUI. OpenWebUI is a modern web interface that provides enhanced API capabilities while using Ollama as the backend AI engine. The adapter can work with both OpenWebUI (recommended) and direct Ollama connections, offering two main operational modes:
 
 1. **Traditional Chat Mode**: Direct communication with AI models through ioBroker datapoints
-2. **Enhanced AI Mode**: Advanced functionality including vector database integration and automatic datapoint control
+2. **Enhanced AI Mode**: Advanced functionality including vector database integration, automatic datapoint control, and native multilingual support
 
 ### Requirements
 
@@ -37,78 +37,98 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
   - Reachable via network (default: localhost:6333)
   - Minimum 1GB RAM recommended for vector storage
 
-#### Installation Steps
-1. **Install Ollama server** on your system or network
-2. **Pull required models**: `ollama pull llama3.2` (or your preferred model)
-3. **For vector features**: `ollama pull nomic-embed-text`
-4. **Install OpenWebUI** as frontend: 
-   ```bash
-   docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway \
-   -v open-webui:/app/backend/data --name open-webui --restart always \
-   ghcr.io/open-webui/open-webui:main
-   ```
-5. **Install Qdrant** vector database:
-   ```bash
-   docker run -d -p 6333:6333 --name qdrant \
-   -v qdrant_storage:/qdrant/storage:z \
-   qdrant/qdrant:latest
-   ```
-6. **Install the adapter** from ioBroker admin interface
-7. **Configure the adapter** with your server URLs and API credentials
-8. **For OpenWebUI Tool Integration**:
-   - Enable "Use Qdrant" in Database tab
-   - Enable "Tool Server" in Tool Server tab  
-   - Add tool URL in OpenWebUI: `http://YOUR_IOBROKER_IP:Port/openapi.json`
+#### Configuration Guide
+
+**1. Ollama Server Configuration:**
+- Install and start Ollama on your system or network
+- Pull required models: `ollama pull llama3.2` and `ollama pull nomic-embed-text`
+- Ensure Ollama is accessible via network (default: port 11434)
+- For embedding features, verify the embedding model is available
+
+**2. OpenWebUI Configuration:**
+- Install OpenWebUI as frontend (Docker recommended)
+- Configure OpenWebUI to connect to your Ollama server
+- Create API key in OpenWebUI Settings → Account → API Keys
+- Test connection and model availability
+
+**3. Qdrant Vector Database Configuration:**
+- Install Qdrant vector database (Docker recommended)
+- Configure Qdrant to be accessible via network (default: port 6333)
+- No initial configuration needed - adapter will create collections automatically
+- Ensure sufficient memory (minimum 1GB RAM recommended)
+
+**4. ioBroker Adapter Configuration:**
+
+*Connection Tab:*
+- **Ollama Server IP**: IP address of your Ollama server (e.g., `192.168.1.100`)
+- **Ollama Server Port**: Port of Ollama server (default: `11434`)
+- **OpenWebUI Server IP**: IP address of your OpenWebUI server
+- **OpenWebUI Server Port**: Port of OpenWebUI server (default: `3000`)
+- **OpenWebUI API Key**: API key from OpenWebUI Settings → Account → API Keys
+- **Model Running Check Interval**: How often to check if models are running (default: 60000ms)
+
+*Database Tab:*
+- **Use Qdrant**: ✅ Enable for RAG functionality
+- **Qdrant Server IP**: IP address of your Qdrant server (e.g., `192.168.1.200`)
+- **Qdrant Server Port**: Port of Qdrant server (default: `6333`)
+- **Embedding Model**: Model for creating embeddings (e.g., `nomic-embed-text`)
+- **Max Context Results**: Maximum number of context results to retrieve (default: `5`)
+- **Vector DB Collection**: Collection name for datapoints (default: `iobroker_datapoints`)
+
+*Function Calling Tab:*
+- **Enable Datapoint Control**: ✅ Enable AI control of datapoints
+- **Automatic Control Whitelist**: Patterns for automatic control (multilingual)
+
+*Tool Server Tab:*
+- **Enable Tool Server**: ✅ Enable for OpenWebUI RAG integration
+- **Tool Server Host**: Host interface (default: `0.0.0.0` for all interfaces)
+- **Tool Server Port**: Port for tool server (default: `9099`, auto-adjusts if busy)
+- **Chat Model**: Model for RAG processing (e.g., `llama3.2`)
+- **Temperature**: Response creativity (default: `0.7`)
+- **Max Tokens**: Maximum response length (default: `2048`)
+
+**5. Datapoint Configuration:**
+- Go to Objects → your device → Custom Settings
+- **Enable for Vector Database**: ✅ Include this datapoint in RAG context
+- **Enable Auto Change**: ✅ Allow AI to control this datapoint
+- **Description**: Human-readable description (e.g., "Living room light")
+- **Location**: Location of the device (e.g., "Living room")
+- **Value for true/false**: Custom text for boolean states
+- **Units**: Units for number values (e.g., "°C", "kWh")
+
+**6. OpenWebUI Tool Integration:**
+- Open OpenWebUI web interface
+- Navigate to Settings → Tools
+- Add new tool URL: `http://YOUR_IOBROKER_IP:9099/openapi.json`
+- Enable the "ioBroker Qdrant RAG Tool"
+- Save settings and restart OpenWebUI if necessary
+
+**7. Testing the Setup:**
+- Check adapter logs for successful connections
+- Verify models appear in Objects → ollama.0 → models
+- Test RAG functionality by asking about your devices in OpenWebUI
+- Check vector database population in adapter logs
+- Test automatic datapoint control with natural language commands
 
 ### Main Features
 
-- **🆕 Universal Model Compatibility**: ALL models now work with RAG integration through intelligent Tool Server routing
-- **🆕 Automatic Chat Processing**: Tool Server handles complete chat workflow with seamless RAG enhancement
-- **🆕 Smart Fallback System**: Automatic fallback from Tool Server → OpenWebUI → Direct Ollama for maximum reliability
-- **🆕 Enhanced Error Handling**: Robust error management and graceful degradation
+- **🆕 Adaptive Intent Recognition**: Intelligent intent detection in German and English with context-aware datapoint control
+- **Universal Model Compatibility**: ALL models work with RAG integration through intelligent Tool Server routing
+- **Automatic Chat Processing**: Tool Server handles complete chat workflow with seamless RAG enhancement
+- **Smart Fallback System**: Automatic fallback from Tool Server → OpenWebUI → Direct Ollama for maximum reliability
+- **Enhanced Error Handling**: Robust error management and graceful degradation
 - **Dual Connection Support**: Works with both OpenWebUI (recommended) and direct Ollama connections
 - **Model Auto-Discovery**: Automatic detection and creation of all available Ollama models as channels and states
 - **Complete Chat API**: Send messages to models via states under `models.<modelId>.messages.*` (role, content, images, tool_calls, etc.)
-- **Full Parameter Support**: Support for all Ollama parameters (`tools`, `think`, `format`, `options`, `stream`, `keep_alive`)
 - **Real-time Monitoring**: Status monitoring shows if a model is loaded/running and when it expires via direct Ollama connection
-- **OpenWebUI Integration**: Enhanced chat completions API with Bearer token authentication
 - **Vector Database Integration**: Uses Qdrant for storing and retrieving context-aware embeddings
 - **AI Function-Calling**: Automatic datapoint control based on AI model responses
 - **Context-Enhanced Chat**: Automatically enhances chat messages with relevant datapoint context
-- **🆕 OpenWebUI Tool Server**: RAG (Retrieval Augmented Generation) tool integration for direct access to ioBroker data from OpenWebUI chat
+- **OpenWebUI Tool Server**: RAG (Retrieval Augmented Generation) tool integration for direct access to ioBroker data from OpenWebUI chat
 
-### 🚀 OpenWebUI Tool Server Integration (NEW!)
+### 🚀 OpenWebUI Tool Server Integration
 
 The adapter now includes a powerful **Tool Server** that provides **RAG (Retrieval Augmented Generation)** functionality directly within OpenWebUI. This allows you to ask questions about your smart home data directly in OpenWebUI chat and get contextual answers based on your ioBroker datapoints.
-
-#### What is RAG?
-RAG combines your smart home data with AI to provide intelligent, context-aware responses. Instead of generic answers, the AI can reference actual device states, historical data, and trends from your ioBroker system.
-
-#### Setup Instructions:
-
-1. **Enable Vector Database** in adapter configuration:
-   - ✅ Use Qdrant: `true`
-   - Configure Qdrant server IP and port
-   - Enable datapoints for embedding in device custom settings
-
-2. **Enable Tool Server** in adapter configuration:
-   - ✅ Enable Tool Server: `true` (default)
-   - Tool Server Host: `0.0.0.0` (all interfaces)
-   - Tool Server Port: `9099` (default, auto-adjusts if busy)
-   - Chat Model: `llama3.2` (or your preferred model)
-
-3. **Configure OpenWebUI Tool Integration**:
-   - Open OpenWebUI web interface
-   - Go to **Settings** → **Tools**
-   - Add new tool URL: `http://YOUR_IOBROKER_IP:9099/openapi.json`
-   - Enable the "ioBroker Qdrant RAG Tool"
-   - Save settings
-
-4. **Start Using**:
-   - Open any chat in OpenWebUI
-   - Ask questions about your smart home in natural language
-   - The AI will automatically use your ioBroker data to provide contextual answers
-   - RAG integration happens automatically behind the scenes
 
 #### Data Formatting Examples:
 
@@ -127,10 +147,10 @@ Formatted output: "Jemand ist anwesend (Zuhause)"
 ```
 Configuration:
 - Description: "Zählerstand"
-- Location: "Zuhause"
+- Location: "Haus"
 - Units: "l"
 
-Formatted output: "Zählerstand: 1250l (Zuhause)"
+Formatted output: "Zählerstand: 1250l (Haus)"
 ```
 
 **Text Type:**
@@ -150,14 +170,27 @@ Each formatted entry includes:
 - Formatted text for embedding
 - Location and description metadata
 
+#### Adaptive Intent Recognition:
+- **Context-Aware**: Understands commands in German and English naturally
+- **Smart Datapoint Control**: Automatically detects and controls datapoints based on natural language input
+- **Configurable Patterns**: Customizable whitelist patterns for automatic control
+- **Multilingual Logging**: All system messages and logs in appropriate language
 
 ### ToDo
 
 - Enhanced multi-modal support (images, documents)
 - Integration of Websearch Function
-- iobroker Datapoint statechange
 
 ## Changelog
+
+### 0.3.0
+* **NEW: Adaptive Intent Recognition** - Intelligent intent detection in German and English with context-aware datapoint control
+* **NEW: Enhanced Dynamic Configuration** - Improved configuration management with most server IPs, ports, and API keys using ioBroker UI configuration
+* Enhanced OllamaClient with dynamic URL generation from configuration
+* Improved ToolServer with configurable Ollama connections
+* Enhanced error handling and logging with multilingual messages for core components
+* Updated DatapointController with native i18n integration
+* Significant reduction of hardcoded server addresses and ports with reliable fallback defaults
 
 ### 0.2.0 (🆕 Major Update)
 * **NEW: OpenWebUI Tool Server Integration** - RAG (Retrieval Augmented Generation) functionality directly in OpenWebUI chat
