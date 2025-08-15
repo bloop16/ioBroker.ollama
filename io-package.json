@@ -15,84 +15,6 @@
                 "pl": "Pełna zgodność z ESLint bez błędów i ostrzeżeń, kompleksowa dokumentacja JSDoc dla wszystkich metod i parametrów, ulepszona jakość kodu i łatwość konserwacji",
                 "uk": "Повна відповідність ESLint без помилок та попереджень, всебічна документація JSDoc для всіх методів та параметрів, покращена якість коду та зручність обслуговування",
                 "zh-cn": "完全符合ESLint规范，零错误和警告，为所有方法和参数提供全面的JSDoc文档，提高代码质量和可维护性"
-            },
-            "0.3.0": {
-                "en": "Native ioBroker multilingual support with adaptive intent recognition in 11 languages, complete configuration validation, and dynamic server settings",
-                "de": "Native ioBroker Mehrsprachigkeitsunterstützung mit adaptiver Intent-Erkennung in 11 Sprachen, vollständige Konfigurationsvalidierung und dynamische Server-Einstellungen",
-                "ru": "Нативная поддержка многоязычности ioBroker с адаптивным распознаванием намерений на 11 языках, полная проверка конфигурации и динамические настройки сервера",
-                "pt": "Suporte multilíngue nativo do ioBroker com reconhecimento adaptivo de intenções em 11 idiomas, validação completa de configuração e configurações dinâmicas de servidor",
-                "nl": "Native ioBroker meertalige ondersteuning met adaptieve intentieherkenning in 11 talen, volledige configuratievalidatie en dynamische serverinstellingen",
-                "fr": "Support multilingue natif ioBroker avec reconnaissance adaptative d'intention en 11 langues, validation complète de configuration et paramètres de serveur dynamiques",
-                "it": "Supporto multilingue nativo ioBroker con riconoscimento adattivo delle intenzioni in 11 lingue, validazione completa della configurazione e impostazioni dinamiche del server",
-                "es": "Soporte multilingüe nativo de ioBroker con reconocimiento adaptativo de intenciones en 11 idiomas, validación completa de configuración y configuraciones dinámicas de servidor",
-                "pl": "Natywne wsparcie wielojęzyczne ioBroker z adaptacyjnym rozpoznawaniem intencji w 11 językach, pełna walidacja konfiguracji i dynamiczne ustawienia serwera",
-                "uk": "Нативна підтримка багатомовності ioBroker з адаптивним розпізнаванням намірів на 11 мовах, повна валідація конфігурації та динамічні налаштування сервера",
-                "zh-cn": "原生ioBroker多语言支持，具有11种语言的自适应意图识别、完整配置验证和动态服务器设置"
-            },
-            "0.2.1": {
-                "en": "Enhanced Tool Server with complete chat processing, universal model compatibility for RAG integration, automatic fallback system, improved error handling and comprehensive testing framework",
-                "de": "Erweiterter Tool Server mit kompletter Chat-Verarbeitung, universelle Modell-Kompatibilität für RAG-Integration, automatisches Fallback-System, verbesserte Fehlerbehandlung und umfassendes Test-Framework",
-                "ru": "Расширенный Tool Server с полной обработкой чата, универсальная совместимость моделей для RAG-интеграции, автоматическая система резервного копирования, улучшенная обработка ошибок и комплексная тестовая среда",
-                "pt": "Tool Server aprimorado com processamento completo de chat, compatibilidade universal de modelo para integração RAG, sistema de fallback automático, tratamento de erros aprimorado e estrutura de teste abrangente",
-                "nl": "Verbeterde Tool Server met volledige chatverwerking, universele modelcompatibiliteit voor RAG-integratie, automatisch fallback-systeem, verbeterde foutafhandeling en uitgebreid testframework",
-                "fr": "Tool Server amélioré avec traitement de chat complet, compatibilité de modèle universelle pour l'intégration RAG, système de secours automatique, gestion d'erreur améliorée et cadre de test complet",
-                "it": "Tool Server potenziato con elaborazione chat completa, compatibilità modello universale per integrazione RAG, sistema di fallback automatico, gestione errori migliorata e framework di test completo",
-                "es": "Tool Server mejorado con procesamiento de chat completo, compatibilidad de modelo universal para integración RAG, sistema de respaldo automático, manejo de errores mejorado y marco de prueba integral",
-                "pl": "Rozszerzony Tool Server z kompletnym przetwarzaniem czatu, uniwersalna kompatybilność modeli dla integracji RAG, automatyczny system zapasowy, ulepszona obsługa błędów i kompleksowy framework testowy",
-                "uk": "Розширений Tool Server з повною обробкою чату, універсальна сумісність моделей для RAG-інтеграції, автоматична резервна система, покращена обробка помилок та комплексна тестова структура",
-                "zh-cn": "增强的工具服务器，具有完整的聊天处理、RAG集成的通用模型兼容性、自动回退系统、改进的错误处理和全面的测试框架"
-            },
-            "0.2.0": {
-                "en": "Vector Database integration with Qdrant, AI Function-Calling for datapoint control, enhanced context-aware responses, simplified codebase",
-                "de": "Vektordatenbank-Integration mit Qdrant, AI Function-Calling für Datenpunkt-Steuerung, verbesserte kontextbasierte Antworten, vereinfachte Codebasis",
-                "ru": "Интеграция базы данных векторных данных с Qdrant, AI Function Calling для управления DataPoint, улучшенные ответы с учетом контекста, упрощенная кодовая база",
-                "pt": "Integração do banco de dados vetor",
-                "nl": "Vectordatabase-integratie met Qdrant, AI-functie-calling voor datapoint-besturing, verbeterde contextbewuste antwoorden, vereenvoudigde codebase",
-                "fr": "Intégration de la base de données vectorielle avec QDRANT, Fonction-appels pour le contrôle de point de données, réponses renforcées contextuelles, base de code simplifiée",
-                "it": "Integrazione del database vettoriale con QDRANT, CALLAZIONE DI FUNZIONE AI per il controllo del punto dati, risposte consapevole del contesto migliorate, base di codice semplificata",
-                "es": "Integración de la base de datos vectorial con QDRANT, la función de IA para el control de DataPoint, respuestas mejoradas con el contexto, la base de código simplificado",
-                "pl": "Integracja wektorowej bazy danych z QDRANT, AI Concaling dla kontroli punktu danych, ulepszone odpowiedzi kontekstowe, uproszczona baza kodu",
-                "uk": "Інтеграція векторної бази даних з QDRANT, AI функціонування для управління датами, розширені відповіді на контекст, спрощена база коду",
-                "zh-cn": "矢量数据库与QDRANT，数据点控件的AI函数调用，增强的上下文感知响应，简化的代码库"
-            },
-            "0.0.3": {
-                "en": "Ready for first public release. All compliance warnings fixed. Stable features: Ollama model detection, chat API, state mapping, multi-language, status monitoring.",
-                "de": "Bereit für den ersten öffentlichen Release. Alle Compliance-Warnungen behoben. Stabile Features: Ollama-Modellerkennung, Chat-API, State-Mapping, Mehrsprachigkeit, Statusüberwachung.",
-                "ru": "Готово к первому публичному релизу. Все предупреждения о соответствии исправлены. Стабильные функции: обнаружение моделей Ollama, чат API, сопоставление состояний, многоязычность, мониторинг статуса.",
-                "pt": "Pronto para o primeiro lançamento público. Todos os avisos de conformidade corrigidos. Recursos estáveis: detecção de modelo Ollama, API de chat, mapeamento de estados, multilíngue, monitoramento de status.",
-                "nl": "Klaar voor eerste publieke release. Alle compliance-waarschuwingen opgelost. Stabiele functies: Ollama-modeldetectie, chat-API, staat-mapping, meertaligheid, statusmonitoring.",
-                "fr": "Prêt pour la première version publique. Tous les avertissements de conformité corrigés. Fonctionnalités stables : détection de modèle Ollama, API de chat, mappage des états, multilingue, surveillance du statut.",
-                "it": "Pronto per il primo rilascio pubblico. Tutti gli avvisi di conformità risolti. Funzionalità stabili: rilevamento modelli Ollama, API chat, mapping degli stati, multilingua, monitoraggio stato.",
-                "es": "Listo para el primer lanzamiento público. Todas las advertencias de cumplimiento corregidas. Funciones estables: detección de modelos Ollama, API de chat, mapeo de estados, multilingüe, monitoreo de estado.",
-                "pl": "Gotowy do pierwszego publicznego wydania. Wszystkie ostrzeżenia dotyczące zgodności zostały naprawione. Stabilne funkcje: wykrywanie modeli Ollama, API czatu, mapowanie stanów, wielojęzyczność, monitorowanie statusu.",
-                "uk": "Готово до першого публічного релізу. Всі попередження про відповідність виправлені. Стабільні функції: виявлення моделей Ollama, чат API, зіставлення станів, багатомовність, моніторинг статусу.",
-                "zh-cn": "准备首次公开发布。所有合规警告均已修复。稳定功能：Ollama模型检测、聊天API、状态映射、多语言、状态监控。"
-            },
-            "0.0.2": {
-                "en": "Various compliance and repository warnings fixed (see README changelog)",
-                "de": "Diverse Compliance- und Repository-Warnungen behoben (siehe README Changelog)",
-                "ru": "Исправлены различные предупреждения о соответствии и репозитории (см. список изменений в README)",
-                "pt": "Vários avisos de conformidade e repositório corrigidos (veja o changelog do README)",
-                "nl": "Diverse compliance- en repository-waarschuwingen opgelost (zie README changelog)",
-                "fr": "Divers avertissements de conformité et e dépôt corrigés (voir le changelog du README)",
-                "it": "Risolti vari avvisi di conformità e repository (vedi changelog README)",
-                "es": "Se corrigieron varias advertencias de cumplimiento e repositorio (ver el registro de cambios en README)",
-                "pl": "Naprawiono różne ostrzeżenia dotyczące zgodności i repozytorium (patrz changelog README)",
-                "uk": "Виправлено різні попередження щодо відповідності та репозиторію (див. список змін у README)",
-                "zh-cn": "修复了各种合规性和存储库警告（请参阅README更改日志）"
-            },
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "uk": "Початкова версія",
-                "zh-cn": "首次出版"
             }
         },
         "titleLang": {
@@ -131,8 +53,7 @@
             "artificial intelligence",
             "vector database",
             "qdrant",
-            "home automation",
-            "smart home"
+            "home automation"
         ],
         "licenseInformation": {
             "type": "free",
@@ -165,6 +86,12 @@
             }
         ]
     },
+    "protectedNative": [
+        "openWebUIApiKey"
+    ],
+    "encryptedNative": [
+        "openWebUIApiKey"
+    ],
     "native": {
         "openWebUIIp": "127.0.0.1",
         "openWebUIPort": 3000,
@@ -188,5 +115,51 @@
         "automaticControlWhitelist": "schalte * ein|schalte * aus|setze * auf *|stelle * auf *|mache * an|mache * aus|turn * on|turn * off|set * to *|switch * on|switch * off|activate *|deactivate *"
     },
     "objects": [],
-    "instanceObjects": []
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "folder",
+            "common": {
+                "name": {
+                    "en": "Info",
+                    "de": "Info",
+                    "ru": "Информация",
+                    "pt": "Info",
+                    "nl": "Info",
+                    "fr": "Info",
+                    "it": "Info",
+                    "es": "Info",
+                    "pl": "Info",
+                    "uk": "Інформація",
+                    "zh-cn": "信息"
+                }
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Connection status",
+                    "de": "Verbindungsstatus",
+                    "ru": "Статус соединения",
+                    "pt": "Status da conexão",
+                    "nl": "Verbindingsstatus",
+                    "fr": "Statut de connexion",
+                    "it": "Stato della connessione",
+                    "es": "Estado de conexión",
+                    "pl": "Status połączenia",
+                    "uk": "Статус з'єднання",
+                    "zh-cn": "连接状态"
+                },
+                "type": "boolean",
+                "role": "indicator.connected",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
 }

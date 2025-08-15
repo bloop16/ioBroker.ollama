@@ -220,7 +220,12 @@ class ollama extends utils.Adapter {
       );
 
       const intervalMs = Number(this.config.checkOllamaModelRunning) || 0;
-      this.ollamaClient.startMonitor(this._models, this.namespace, intervalMs);
+      this.ollamaClient.startMonitor(
+        this._models,
+        this.namespace,
+        intervalMs,
+        this,
+      );
     } catch (err) {
       this.log.error(`Error in onReady: ${err.message}`);
       await this.setConnected(false);
@@ -439,7 +444,7 @@ class ollama extends utils.Adapter {
     this.log.debug(`Connection set to ${connected}`);
 
     if (!connected && this.ollamaClient) {
-      this.ollamaClient.stopMonitor();
+      this.ollamaClient.stopMonitor(this);
     }
   }
 
@@ -480,14 +485,14 @@ class ollama extends utils.Adapter {
     try {
       // Stop all intervals
       if (this._runningInterval) {
-        clearInterval(this._runningInterval);
+        this.clearInterval(this._runningInterval);
         this._runningInterval = null;
       }
 
       // Clean up resources
       if (this.ollamaClient) {
         // Allow any pending operations to complete
-        this.ollamaClient.stopMonitor();
+        this.ollamaClient.stopMonitor(this);
       }
 
       // Clear tracking sets
