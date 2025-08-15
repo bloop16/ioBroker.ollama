@@ -184,14 +184,11 @@ Each formatted entry includes:
 ## Changelog
 
 ### 0.3.1
-* **QUALITY: Complete ESLint Compliance** - Achieved zero errors and warnings across entire codebase
-* **DOCUMENTATION: Comprehensive JSDoc** - Added detailed parameter descriptions for all methods and functions
-* **MAINTAINABILITY: Enhanced Code Quality** - Improved code readability and maintainability through proper documentation
-* Professional-grade code standards preparation for stable release
+* **Enhanced Code Quality** - Improved code readability and maintainability through proper documentation
 
 ### 0.3.0
-* **NEW: Adaptive Intent Recognition** - Intelligent intent detection in German and English with context-aware datapoint control
-* **NEW: Enhanced Dynamic Configuration** - Improved configuration management with most server IPs, ports, and API keys using ioBroker UI configuration
+* **Adaptive Intent Recognition** - Intelligent intent detection in German and English with context-aware datapoint control
+* **Enhanced Dynamic Configuration** - Improved configuration management with most server IPs, ports, and API keys using ioBroker UI configuration
 * Enhanced OllamaClient with dynamic URL generation from configuration
 * Improved ToolServer with configurable Ollama connections
 * Enhanced error handling and logging with multilingual messages for core components
@@ -199,14 +196,14 @@ Each formatted entry includes:
 * Significant reduction of hardcoded server addresses and ports with reliable fallback defaults
 
 ### 0.2.0 (🆕 Major Update)
-* **NEW: OpenWebUI Tool Server Integration** - RAG (Retrieval Augmented Generation) functionality directly in OpenWebUI chat
-* **NEW: Advanced Configuration Interface** - Dedicated Tool Server configuration tab with all necessary settings
-* **NEW: Singleton Architecture** - Prevents multiple Tool Server instances and ensures stable operation
-* **NEW: Automatic Tool Discovery** - OpenWebUI automatically detects and integrates the ioBroker RAG tool
-* **NEW: Semantic Search Enhancement** - AI-powered similarity matching for finding relevant datapoints
-* **NEW: Multi-language Support** - Tool Server works in German and English with automatic language detection
-* **NEW: Real-time Context Integration** - Access to current and historical datapoint information in natural language
-* **NEW: Comprehensive API** - OpenAPI 3.0 compliant with health checks and legacy compatibility
+* **OpenWebUI Tool Server Integration** - RAG (Retrieval Augmented Generation) functionality directly in OpenWebUI chat
+* **Advanced Configuration Interface** - Dedicated Tool Server configuration tab with all necessary settings
+* **Singleton Architecture** - Prevents multiple Tool Server instances and ensures stable operation
+* **Automatic Tool Discovery** - OpenWebUI automatically detects and integrates the ioBroker RAG tool
+* **Semantic Search Enhancement** - AI-powered similarity matching for finding relevant datapoints
+* **Multi-language Support** - Tool Server works in German and English with automatic language detection
+* **Real-time Context Integration** - Access to current and historical datapoint information in natural language
+* **Comprehensive API** - OpenAPI 3.0 compliant with health checks and legacy compatibility
 * Enhanced vector database integration with improved embedding generation
 * Improved error handling and graceful fallback mechanisms
 * Better port management with automatic conflict resolution
