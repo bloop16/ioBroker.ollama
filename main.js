@@ -245,16 +245,23 @@ class ollama extends utils.Adapter {
         !state.ack
       ) {
         this.log.info(
-          "[VectorDB] Starting manual cleanup of duplicate entries...",
+          "[VectorDB] Starting complete cleanup (duplicates + disabled datapoints)...",
         );
         if (this.config.useVectorDb) {
           const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
-          await QdrantHelper.cleanupAllDuplicates(
-            this._enabledDatapoints,
-            qdrantUrl,
-            "iobroker_datapoints",
-            this.log,
-          );
+          try {
+            const results = await QdrantHelper.completeVectorDbCleanup(
+              this._enabledDatapoints,
+              qdrantUrl,
+              "iobroker_datapoints",
+              this.log,
+            );
+            this.log.info(
+              `[VectorDB] Cleanup completed: ${results.disabledDatapointsRemoved} disabled datapoints removed, ${results.duplicatesCleanedDatapoints} datapoints processed for duplicates`,
+            );
+          } catch (error) {
+            this.log.error(`[VectorDB] Cleanup failed: ${error.message}`);
+          }
         } else {
           this.log.warn("[VectorDB] Vector database is not enabled");
         }
