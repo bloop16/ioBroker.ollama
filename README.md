@@ -183,6 +183,12 @@ Each formatted entry includes:
 
 ## Changelog
 
+### 0.3.1
+* **QUALITY: Complete ESLint Compliance** - Achieved zero errors and warnings across entire codebase
+* **DOCUMENTATION: Comprehensive JSDoc** - Added detailed parameter descriptions for all methods and functions
+* **MAINTAINABILITY: Enhanced Code Quality** - Improved code readability and maintainability through proper documentation
+* Professional-grade code standards preparation for stable release
+
 ### 0.3.0
 * **NEW: Adaptive Intent Recognition** - Intelligent intent detection in German and English with context-aware datapoint control
 * **NEW: Enhanced Dynamic Configuration** - Improved configuration management with most server IPs, ports, and API keys using ioBroker UI configuration
