@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.3.0",
+        "version": "0.3.1",
         "news": {
+            "0.3.1": {
+                "en": "Complete ESLint compliance with zero errors and warnings, comprehensive JSDoc documentation for all methods and parameters, enhanced code quality and maintainability",
+                "de": "Vollständige ESLint-Konformität ohne Fehler und Warnungen, umfassende JSDoc-Dokumentation für alle Methoden und Parameter, verbesserte Codequalität und Wartbarkeit",
+                "ru": "Полное соответствие ESLint без ошибок и предупреждений, всеобъемлющая документация JSDoc для всех методов и параметров, улучшенное качество кода и удобство сопровождения",
+                "pt": "Conformidade completa com ESLint sem erros e avisos, documentação JSDoc abrangente para todos os métodos e parâmetros, qualidade de código aprimorada e manutenibilidade",
+                "nl": "Volledige ESLint-naleving zonder fouten en waarschuwingen, uitgebreide JSDoc-documentatie voor alle methoden en parameters, verbeterde codekwaliteit en onderhoudbaarheid",
+                "fr": "Conformité ESLint complète sans erreurs ni avertissements, documentation JSDoc complète pour toutes les méthodes et paramètres, qualité de code améliorée et maintenabilité",
+                "it": "Conformità ESLint completa senza errori e avvisi, documentazione JSDoc completa per tutti i metodi e parametri, qualità del codice migliorata e manutenibilità",
+                "es": "Cumplimiento completo de ESLint sin errores y advertencias, documentación JSDoc integral para todos los métodos y parámetros, calidad de código mejorada y mantenibilidad",
+                "pl": "Pełna zgodność z ESLint bez błędów i ostrzeżeń, kompleksowa dokumentacja JSDoc dla wszystkich metod i parametrów, ulepszona jakość kodu i łatwość konserwacji",
+                "uk": "Повна відповідність ESLint без помилок та попереджень, всебічна документація JSDoc для всіх методів та параметрів, покращена якість коду та зручність обслуговування",
+                "zh-cn": "完全符合ESLint规范，零错误和警告，为所有方法和参数提供全面的JSDoc文档，提高代码质量和可维护性"
+            },
             "0.3.0": {
                 "en": "Native ioBroker multilingual support with adaptive intent recognition in 11 languages, complete configuration validation, and dynamic server settings",
                 "de": "Native ioBroker Mehrsprachigkeitsunterstützung mit adaptiver Intent-Erkennung in 11 Sprachen, vollständige Konfigurationsvalidierung und dynamische Server-Einstellungen",
