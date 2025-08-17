@@ -1,0 +1,136 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ioBroker Smart Home Tools",
+    "version": "1.0.0",
+    "description": "OpenWebUI Tools for ioBroker smart home control and RAG queries"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:9099",
+      "description": "ioBroker Tools Server"
+    }
+  ],
+  "paths": {
+    "/setState": {
+      "post": {
+        "summary": "Set ioBroker datapoint state",
+        "description": "Control smart home devices by setting datapoint values. Only allowed datapoints can be controlled.",
+        "operationId": "setState",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datapoint": {
+                    "type": "string",
+                    "description": "The ID of the datapoint to control"
+                  },
+                  "value": {
+                    "oneOf": [
+                      { "type": "boolean" },
+                      { "type": "number" },
+                      { "type": "string" }
+                    ],
+                    "description": "The new value to set for the datapoint"
+                  }
+                },
+                "required": ["datapoint", "value"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully set datapoint value"
+          },
+          "400": {
+            "description": "Invalid request or datapoint not allowed"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/getState": {
+      "post": {
+        "summary": "Get ioBroker datapoint state",
+        "description": "Read current values from smart home datapoints",
+        "operationId": "getState",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datapoint": {
+                    "type": "string",
+                    "description": "The ID of the datapoint to read"
+                  }
+                },
+                "required": ["datapoint"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved datapoint value"
+          },
+          "400": {
+            "description": "Invalid request or datapoint not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/rag_query": {
+      "post": {
+        "summary": "RAG vector database query",
+        "description": "Search through ioBroker datapoint history using vector similarity and generate AI responses",
+        "operationId": "ragQuery",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "Natural language query about smart home data"
+                  },
+                  "maxResults": {
+                    "type": "integer",
+                    "description": "Maximum number of results to return",
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 20
+                  }
+                },
+                "required": ["query"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully processed RAG query"
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  }
+}

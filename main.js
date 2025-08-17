@@ -5,6 +5,10 @@ const QdrantHelper = require("./lib/qdrantClient");
 const OllamaClient = require("./lib/ollamaClient");
 const ToolServer = require("./lib/toolServer");
 const DatapointController = require("./lib/datapointController");
+const HttpClient = require("./lib/httpClient");
+const LRUCache = require("./lib/lruCache");
+const ConfigValidator = require("./lib/configValidator");
+const HealthMonitor = require("./lib/healthMonitor");
 
 class ollama extends utils.Adapter {
   constructor(options) {
@@ -15,11 +19,13 @@ class ollama extends utils.Adapter {
     this._models = []; // track model names and IDs for running checks
     this._runningInterval = null; // interval handler for running status checks
     this._connected = false; // track connection status for running checks
-    this._axios = require("axios"); // HTTP client
+    this._httpClient = null; // Centralized HTTP client with connection pooling
     this._serverUrlBase = ""; // to be set on ready
     this._translations = {}; // translations
     this._enabledDatapoints = new Set(); // track both embedding and auto-change enabled datapoints
-    this._processedStates = new Set(); // track processed state changes to prevent duplicates
+    this._processedStates = null; // LRU Cache for processed state changes (initialized in onReady)
+    this._configValidator = null; // Configuration validator
+    this._healthMonitor = null; // Health monitoring service
     this.toolServer = null; // OpenWebUI tool server instance
     this.datapointController = null; // DatapointController for function calling
     this.on("ready", this.onReady.bind(this));
@@ -36,6 +42,41 @@ class ollama extends utils.Adapter {
 
   async onReady() {
     try {
+      // Initialize configuration validator
+      this._configValidator = new ConfigValidator(this.log);
+
+      // Validate configuration early to prevent runtime errors
+      const configValidation = this._configValidator.validateConfig(
+        this.config,
+      );
+      if (!configValidation.isValid) {
+        this.log.error(
+          "[Adapter] Configuration validation failed. Adapter will not start.",
+        );
+        return;
+      }
+
+      // Use sanitized configuration values
+      const sanitizedConfig = configValidation.sanitized;
+      Object.assign(this.config, sanitizedConfig);
+
+      // Initialize HTTP client with connection pooling
+      this._httpClient = HttpClient;
+
+      // Initialize LRU cache for processed states (prevents memory leaks)
+      this._processedStates = new LRUCache(1000, 300000); // 1000 items, 5min TTL
+
+      // Initialize health monitoring
+      const healthConfig = {
+        ...this.config,
+        healthMonitoringEnabled: this.config.healthMonitoringEnabled !== false, // Default to true if not set
+        healthMonitoringPort: this.config.healthMonitoringPort || 9098,
+        healthMonitoringHost: this.config.healthMonitoringHost || "127.0.0.1",
+        healthCheckInterval: this.config.healthCheckInterval || 30000,
+      };
+      this._healthMonitor = new HealthMonitor(this.log, healthConfig);
+      await this._healthMonitor.initialize(this._httpClient);
+
       this.log.debug(
         `OpenWebUI Server: ${this.config.openWebUIIp}:${this.config.openWebUIPort}`,
       );
@@ -75,10 +116,22 @@ class ollama extends utils.Adapter {
         "[DatapointController] Controller initialized successfully",
       );
 
+      // Configure OllamaClient with DatapointController for Function Calling
+      // Note: DatapointController Function Calling is now handled by ToolServer
+      // but we keep this for direct Ollama fallback scenarios
+      this.ollamaClient.configureDatapointControl(true, new Set());
+      this.ollamaClient.setDatapointController(this.datapointController);
+      this.log.info(
+        "[OllamaClient] Configured with OpenWebUI-first architecture and ToolServer integration",
+      );
+
       // Test OpenWebUI connection
       let openWebUIAvailable = false;
       try {
-        const response = await this._axios.get(
+        const openWebUIClient = this._httpClient.getOpenWebUI(
+          this.config.openWebUIApiKey,
+        );
+        const response = await openWebUIClient.get(
           `${this._serverUrlBase}/api/models`,
           {
             headers: this.config.openWebUIApiKey
@@ -179,10 +232,8 @@ class ollama extends utils.Adapter {
                 `[ToolServer] OllamaClient configured to use ToolServer at ${toolServerUrl}`,
               );
 
-              // Configure LLM-based intent detection
-              this.toolServer.configureOllamaIntentDetection(this.ollamaClient);
               this.log.info(
-                "[ToolServer] LLM-based intent detection configured",
+                "[ToolServer] Function calling tools configured for smart home control",
               );
             } else {
               this.log.warn(
@@ -226,6 +277,9 @@ class ollama extends utils.Adapter {
         intervalMs,
         this,
       );
+
+      // Start retention cleanup timer if enabled
+      this.startRetentionCleanupTimer();
     } catch (err) {
       this.log.error(`Error in onReady: ${err.message}`);
       await this.setConnected(false);
@@ -319,15 +373,23 @@ class ollama extends utils.Adapter {
 
         // Update DatapointController with allowed datapoints (allowAutoChange)
         if (this.datapointController) {
-          const allowedDatapoints = new Set();
+          const allowedDatapoints = new Set(); // For reading (all enabled)
+          const writeAllowedDatapoints = new Set(); // For writing (only allowAutoChange=true)
+
           for (const datapointId of this._enabledDatapoints) {
             try {
               const dpObj = await this.getForeignObjectAsync(datapointId);
-              if (
-                dpObj?.common?.custom?.[this.namespace]?.allowAutoChange ===
-                true
-              ) {
-                allowedDatapoints.add(datapointId);
+              const customCfg = dpObj?.common?.custom?.[this.namespace];
+
+              // All enabled datapoints are allowed for reading
+              allowedDatapoints.add(datapointId);
+
+              // Only datapoints with allowAutoChange=true are allowed for writing
+              if (customCfg?.allowAutoChange === true) {
+                writeAllowedDatapoints.add(datapointId);
+                this.log.debug(
+                  `[DatapointController] Added ${datapointId} to write-allowed datapoints (allowAutoChange=true)`,
+                );
               }
             } catch (error) {
               this.log.debug(
@@ -335,9 +397,26 @@ class ollama extends utils.Adapter {
               );
             }
           }
+
+          // Set both read and write permissions
           this.datapointController.setAllowedDatapoints(allowedDatapoints);
-          this.log.debug(
-            `[DatapointController] Updated allowed datapoints: ${allowedDatapoints.size} of ${this._enabledDatapoints.size} enabled datapoints have allowAutoChange=true`,
+          this.datapointController.setWriteAllowedDatapoints(
+            writeAllowedDatapoints,
+          );
+
+          // Update OllamaClient with readable datapoints for Function Calling
+          if (
+            this.ollamaClient &&
+            this.ollamaClient.configureDatapointControl
+          ) {
+            this.ollamaClient.configureDatapointControl(
+              true,
+              allowedDatapoints,
+            );
+          }
+
+          this.log.info(
+            `[DatapointController] Updated permissions: ${allowedDatapoints.size} readable datapoints, ${writeAllowedDatapoints.size} writable datapoints (allowAutoChange=true)`,
           );
         }
       } else {
@@ -346,28 +425,9 @@ class ollama extends utils.Adapter {
           this._enabledDatapoints.delete(id);
           this.unsubscribeForeignStates(id);
 
-          // Update DatapointController
+          // Update DatapointController after removal
           if (this.datapointController) {
-            const allowedDatapoints = new Set();
-            for (const datapointId of this._enabledDatapoints) {
-              try {
-                const dpObj = await this.getForeignObjectAsync(datapointId);
-                if (
-                  dpObj?.common?.custom?.[this.namespace]?.allowAutoChange ===
-                  true
-                ) {
-                  allowedDatapoints.add(datapointId);
-                }
-              } catch (error) {
-                this.log.debug(
-                  `[DatapointController] Error checking allowAutoChange for ${datapointId}: ${error.message}`,
-                );
-              }
-            }
-            this.datapointController.setAllowedDatapoints(allowedDatapoints);
-            this.log.debug(
-              `[DatapointController] Updated allowed datapoints after removal: ${allowedDatapoints.size} of ${this._enabledDatapoints.size} enabled datapoints have allowAutoChange=true`,
-            );
+            await this.updateDatapointControllerAllowedDatapoints();
           }
         }
       }
@@ -378,7 +438,8 @@ class ollama extends utils.Adapter {
 
   /**
    * Update DatapointController with currently allowed datapoints
-   * Scans all enabled datapoints and adds those with allowAutoChange=true
+   * Makes all VectorDB-enabled datapoints available for getState (reading)
+   * Only datapoints with allowAutoChange=true are available for setState (writing)
    */
   async updateDatapointControllerAllowedDatapoints() {
     if (!this.datapointController) {
@@ -388,18 +449,23 @@ class ollama extends utils.Adapter {
       return;
     }
 
-    const allowedDatapoints = new Set();
+    // All VectorDB-enabled datapoints are allowed for reading (getState)
+    const allowedDatapoints = new Set(this._enabledDatapoints);
+
+    // Separate set for write-allowed datapoints (setState)
+    const writeAllowedDatapoints = new Set();
+
     this.log.debug(
-      `[DatapointController] Checking ${this._enabledDatapoints.size} enabled datapoints for allowAutoChange`,
+      `[DatapointController] Processing ${this._enabledDatapoints.size} enabled datapoints`,
     );
 
     for (const datapointId of this._enabledDatapoints) {
       try {
         const dpObj = await this.getForeignObjectAsync(datapointId);
         if (dpObj?.common?.custom?.[this.namespace]?.allowAutoChange === true) {
-          allowedDatapoints.add(datapointId);
+          writeAllowedDatapoints.add(datapointId);
           this.log.debug(
-            `[DatapointController] Added ${datapointId} to allowed datapoints (allowAutoChange=true)`,
+            `[DatapointController] Added ${datapointId} to write-allowed datapoints (allowAutoChange=true)`,
           );
         }
       } catch (error) {
@@ -409,9 +475,20 @@ class ollama extends utils.Adapter {
       }
     }
 
+    // Set all enabled datapoints as readable
     this.datapointController.setAllowedDatapoints(allowedDatapoints);
+    this.datapointController.setWriteAllowedDatapoints(writeAllowedDatapoints);
+
+    // Update OllamaClient with all enabled datapoints for Function Calling
+    if (this.ollamaClient && this.ollamaClient.configureDatapointControl) {
+      this.ollamaClient.configureDatapointControl(true, allowedDatapoints);
+      this.log.debug(
+        `[OllamaClient] Updated Function Calling with ${allowedDatapoints.size} readable datapoints`,
+      );
+    }
+
     this.log.info(
-      `[DatapointController] Initialized with ${allowedDatapoints.size} allowed datapoints for automatic state changes`,
+      `[DatapointController] Initialized with ${allowedDatapoints.size} readable datapoints (including VectorDB-enabled), ${writeAllowedDatapoints.size} writable datapoints (allowAutoChange=true only)`,
     );
   }
 
@@ -456,6 +533,95 @@ class ollama extends utils.Adapter {
   }
 
   /**
+   * Start retention cleanup timer if vector database and retention policy are enabled
+   */
+  startRetentionCleanupTimer() {
+    if (!this.config.useVectorDb || !this.config.retentionEnabled) {
+      this.log.debug(
+        "[RetentionCleanup] Vector database or retention policy disabled - skipping timer",
+      );
+      return;
+    }
+
+    const intervalHours = this.config.retentionCleanupInterval || 24;
+    const intervalMs = intervalHours * 60 * 60 * 1000; // Convert hours to milliseconds
+
+    this.log.info(
+      `[RetentionCleanup] Starting retention cleanup timer (every ${intervalHours} hours)`,
+    );
+
+    // Run initial cleanup after 5 minutes to avoid startup congestion
+    this._retentionInitialTimeout = this.setTimeout(
+      () => {
+        this.runRetentionCleanup();
+      },
+      5 * 60 * 1000,
+    );
+
+    // Schedule regular cleanup
+    this._retentionCleanupInterval = this.setInterval(() => {
+      this.runRetentionCleanup();
+    }, intervalMs);
+  }
+
+  /**
+   * Execute retention cleanup for all enabled datapoints
+   */
+  async runRetentionCleanup() {
+    if (
+      !this.config.useVectorDb ||
+      !this.config.retentionEnabled ||
+      !this._enabledDatapoints
+    ) {
+      this.log.debug(
+        "[RetentionCleanup] Skipping cleanup - requirements not met",
+      );
+      return;
+    }
+
+    try {
+      this.log.info("[RetentionCleanup] Starting retention cleanup...");
+
+      const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
+      const collectionName =
+        this.config.vectorDbCollection || "iobroker_datapoints";
+      
+      const retentionConfig = {
+        retentionEnabled: this.config.retentionEnabled,
+        retentionDays: this.config.retentionDays || 30,
+        retentionMaxEntries: this.config.retentionMaxEntries || 100,
+      };
+
+      const QdrantHelper = require("./lib/qdrantClient");
+      const result = await QdrantHelper.runRetentionCleanup(
+        this._enabledDatapoints,
+        qdrantUrl,
+        collectionName,
+        retentionConfig,
+        this.log,
+      );
+
+      this.log.info(
+        `[RetentionCleanup] Cleanup completed: processed ${result.processed} datapoints, removed ${result.removed} entries`,
+      );
+
+      // Update state object for monitoring
+      await this.setStateAsync("info.retentionCleanup", {
+        val: JSON.stringify({
+          lastRun: new Date().toISOString(),
+          processed: result.processed,
+          removed: result.removed,
+        }),
+        ack: true,
+      });
+    } catch (error) {
+      this.log.error(
+        `[RetentionCleanup] Error during retention cleanup: ${error.message}`,
+      );
+    }
+  }
+
+  /**
    * Handle adapter unload
    * Clean up resources and connections before adapter shutdown
    *
@@ -496,6 +662,17 @@ class ollama extends utils.Adapter {
         this._runningInterval = null;
       }
 
+      // Stop retention cleanup timers
+      if (this._retentionCleanupInterval) {
+        this.clearInterval(this._retentionCleanupInterval);
+        this._retentionCleanupInterval = null;
+      }
+
+      if (this._retentionInitialTimeout) {
+        this.clearTimeout(this._retentionInitialTimeout);
+        this._retentionInitialTimeout = null;
+      }
+
       // Clean up resources
       if (this.ollamaClient) {
         // Allow any pending operations to complete
@@ -509,6 +686,15 @@ class ollama extends utils.Adapter {
 
       if (this._processedStates) {
         this._processedStates.clear();
+      }
+
+      // Shutdown health monitoring
+      if (this._healthMonitor) {
+        this._healthMonitor.shutdown().catch((error) => {
+          this.log.error(
+            `Error shutting down health monitor: ${error.message}`,
+          );
+        });
       }
 
       this.log.info("Adapter shutdown completed");

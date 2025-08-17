@@ -1,20 +1,20 @@
 {
     "common": {
         "name": "ollama",
-        "version": "0.3.1",
+        "version": "0.4.0",
         "news": {
-            "0.3.1": {
-                "en": "Complete ESLint compliance with zero errors and warnings, comprehensive JSDoc documentation for all methods and parameters, enhanced code quality and maintainability",
-                "de": "Vollständige ESLint-Konformität ohne Fehler und Warnungen, umfassende JSDoc-Dokumentation für alle Methoden und Parameter, verbesserte Codequalität und Wartbarkeit",
-                "ru": "Полное соответствие ESLint без ошибок и предупреждений, всеобъемлющая документация JSDoc для всех методов и параметров, улучшенное качество кода и удобство сопровождения",
-                "pt": "Conformidade completa com ESLint sem erros e avisos, documentação JSDoc abrangente para todos os métodos e parâmetros, qualidade de código aprimorada e manutenibilidade",
-                "nl": "Volledige ESLint-naleving zonder fouten en waarschuwingen, uitgebreide JSDoc-documentatie voor alle methoden en parameters, verbeterde codekwaliteit en onderhoudbaarheid",
-                "fr": "Conformité ESLint complète sans erreurs ni avertissements, documentation JSDoc complète pour toutes les méthodes et paramètres, qualité de code améliorée et maintenabilité",
-                "it": "Conformità ESLint completa senza errori e avvisi, documentazione JSDoc completa per tutti i metodi e parametri, qualità del codice migliorata e manutenibilità",
-                "es": "Cumplimiento completo de ESLint sin errores y advertencias, documentación JSDoc integral para todos los métodos y parámetros, calidad de código mejorada y mantenibilidad",
-                "pl": "Pełna zgodność z ESLint bez błędów i ostrzeżeń, kompleksowa dokumentacja JSDoc dla wszystkich metod i parametrów, ulepszona jakość kodu i łatwość konserwacji",
-                "uk": "Повна відповідність ESLint без помилок та попереджень, всебічна документація JSDoc для всіх методів та параметрів, покращена якість коду та зручність обслуговування",
-                "zh-cn": "完全符合ESLint规范，零错误和警告，为所有方法和参数提供全面的JSDoc文档，提高代码质量和可维护性"
+            "0.4.0": {
+                "en": "Enhanced ToolServer with improved datapoint control, multilingual boolean conversion, adaptive intent recognition, and robust fallback system for maximum reliability",
+                "de": "Verbesserter ToolServer mit optimierter Datenpunkt-Kontrolle, mehrsprachiger Boolean-Konvertierung, adaptiver Intent-Erkennung und robustem Fallback-System für maximale Zuverlässigkeit",
+                "ru": "Улучшенный ToolServer с оптимизированным управлением точками данных, многоязычным преобразованием логических значений, адаптивным распознаванием намерений и надежной системой резервирования",
+                "pt": "ToolServer aprimorado com controle otimizado de pontos de dados, conversão booleana multilíngue, reconhecimento adaptivo de intenções e sistema de fallback robusto para máxima confiabilidade",
+                "nl": "Verbeterde ToolServer met geoptimaliseerde datapoint-controle, meertalige boolean-conversie, adaptieve intentieherkenning en robuust fallback-systeem voor maximale betrouwbaarheid",
+                "fr": "ToolServer amélioré avec contrôle optimisé des points de données, conversion booléenne multilingue, reconnaissance d'intention adaptative et système de secours robuste pour une fiabilité maximale",
+                "it": "Ottimizzazione completa delle traduzioni con riduzione del 46% (124→78 chiavi), sincronizzazione perfetta su 11 lingue, rimozione di chiavi obsolete e supporto multilingue migliorato del ToolServer",
+                "es": "Optimización integral de traducciones con reducción del 46% (124→78 claves), sincronización perfecta en 11 idiomas, eliminación de claves obsoletas y soporte multilingüe mejorado del ToolServer",
+                "pl": "Kompleksowa optymalizacja tłumaczeń z redukcją o 46% (124→78 kluczy), doskonała synchronizacja w 11 językach, usunięcie przestarzałych kluczy i ulepszone wielojęzyczne wsparcie ToolServer",
+                "uk": "Комплексна оптимізація перекладів із скороченням на 46% (124→78 ключів), ідеальна синхронізація на 11 мовах, видалення застарілих ключів та покращена багатомовна підтримка ToolServer",
+                "zh-cn": "全面的翻译优化，减少46%（124→78个键），11种语言完美同步，删除过时键，增强ToolServer多语言支持"
             }
         },
         "titleLang": {
@@ -112,7 +112,18 @@
         "toolServerChatModel": "llama3.2",
         "temperature": 0.7,
         "maxTokens": 2048,
-        "automaticControlWhitelist": "schalte * ein|schalte * aus|setze * auf *|stelle * auf *|mache * an|mache * aus|turn * on|turn * off|set * to *|switch * on|switch * off|activate *|deactivate *"
+        "retentionEnabled": true,
+        "retentionDays": 30,
+        "retentionMaxEntries": 100,
+        "retentionCleanupInterval": 24,
+        "llmRequestTimeout": 1200,
+        "embeddingTimeout": 300,
+        "ragQueryTimeout": 600,
+        "progressMonitorInterval": 30,
+        "healthMonitoringEnabled": true,
+        "healthMonitoringHost": "127.0.0.1",
+        "healthMonitoringPort": 9098,
+        "healthCheckInterval": 30000
     },
     "objects": [],
     "instanceObjects": [
@@ -158,6 +169,31 @@
                 "read": true,
                 "write": false,
                 "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.retentionCleanup",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Vector DB retention cleanup info",
+                    "de": "Vector DB Retention Cleanup Info",
+                    "ru": "Информация об очистке векторной БД",
+                    "pt": "Info de limpeza de retenção do Vector DB",
+                    "nl": "Vector DB retentie opruiming info",
+                    "fr": "Info de nettoyage de rétention Vector DB",
+                    "it": "Info pulizia retention Vector DB",
+                    "es": "Info de limpieza de retención Vector DB",
+                    "pl": "Info czyszczenia retencji Vector DB",
+                    "uk": "Інформація про очищення ретенції векторної БД",
+                    "zh-cn": "向量数据库保留清理信息"
+                },
+                "type": "string",
+                "role": "json",
+                "read": true,
+                "write": false,
+                "def": "{}"
             },
             "native": {}
         }

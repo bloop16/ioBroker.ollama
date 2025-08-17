@@ -68,19 +68,15 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
 - **Model Running Check Interval**: How often to check if models are running (default: 60000ms)
 
 *Database Tab:*
-- **Use Qdrant**: ✅ Enable for RAG functionality
+- **Use Qdrant**: Enable for RAG functionality
 - **Qdrant Server IP**: IP address of your Qdrant server (e.g., `192.168.1.200`)
 - **Qdrant Server Port**: Port of Qdrant server (default: `6333`)
 - **Embedding Model**: Model for creating embeddings (e.g., `nomic-embed-text`)
 - **Max Context Results**: Maximum number of context results to retrieve (default: `5`)
 - **Vector DB Collection**: Collection name for datapoints (default: `iobroker_datapoints`)
 
-*Function Calling Tab:*
-- **Enable Datapoint Control**: ✅ Enable AI control of datapoints
-- **Automatic Control Whitelist**: Patterns for automatic control (multilingual)
-
 *Tool Server Tab:*
-- **Enable Tool Server**: ✅ Enable for OpenWebUI RAG integration
+- **Enable Tool Server**: Enable for OpenWebUI RAG integration
 - **Tool Server Host**: Host interface (default: `0.0.0.0` for all interfaces)
 - **Tool Server Port**: Port for tool server (default: `9099`, auto-adjusts if busy)
 - **Chat Model**: Model for RAG processing (e.g., `llama3.2`)
@@ -89,8 +85,8 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
 
 **5. Datapoint Configuration:**
 - Go to Objects → your device → Custom Settings
-- **Enable for Vector Database**: ✅ Include this datapoint in RAG context
-- **Enable Auto Change**: ✅ Allow AI to control this datapoint
+- **Enable for Vector Database**: Include this datapoint in RAG context
+- **Enable Auto Change**: Allow AI to control this datapoint
 - **Description**: Human-readable description (e.g., "Living room light")
 - **Location**: Location of the device (e.g., "Living room")
 - **Value for true/false**: Custom text for boolean states
@@ -112,7 +108,7 @@ This adapter transforms your ioBroker system into an AI-powered home automation 
 
 ### Main Features
 
-- **🆕 Adaptive Intent Recognition**: Intelligent intent detection in German and English with context-aware datapoint control
+- **Adaptive Intent Recognition**: Intelligent intent detection with context-aware datapoint control
 - **Universal Model Compatibility**: ALL models work with RAG integration through intelligent Tool Server routing
 - **Automatic Chat Processing**: Tool Server handles complete chat workflow with seamless RAG enhancement
 - **Smart Fallback System**: Automatic fallback from Tool Server → OpenWebUI → Direct Ollama for maximum reliability
@@ -170,18 +166,61 @@ Each formatted entry includes:
 - Formatted text for embedding
 - Location and description metadata
 
-#### Adaptive Intent Recognition:
-- **Context-Aware**: Understands commands in German and English naturally
-- **Smart Datapoint Control**: Automatically detects and controls datapoints based on natural language input
-- **Configurable Patterns**: Customizable whitelist patterns for automatic control
-- **Multilingual Logging**: All system messages and logs in appropriate language
+### 🏥 HealthMonitor
+
+The integrated **HealthMonitor** is a comprehensive monitoring system that continuously monitors the health of all critical services and provides detailed status information. It offers both HTTP endpoints for external monitoring tools and internal monitoring functions.
+
+#### Monitored Services:
+- **Ollama Server**: Connection status, available models, response times
+- **OpenWebUI**: API availability, authentication, version
+- **Qdrant Vector Database**: Connection, collections, memory usage
+- **Tool Server**: API endpoints, functionality, port status
+- **Adapter**: Runtime, memory, CPU usage
+
+#### HTTP Endpoints:
+```
+GET /health           - Overall status of all services
+GET /health/ollama    - Detailed Ollama status
+GET /health/openwebui - OpenWebUI health data
+GET /health/vectordb  - Vector Database status  
+GET /health/toolserver- Tool Server metrics
+GET /health/adapter   - Adapter system data
+```
+
+#### Configuration:
+- **Enable Health Monitoring**: Enables continuous monitoring
+- **Health Server Host**: Host interface (default: `127.0.0.1`)
+- **Health Server Port**: Port for HTTP endpoints (default: `9098`)
+- **Check Interval**: Monitoring interval in ms (default: `30000`)
+
+#### Automatic Functions:
+- **🔄 Periodic Checks**: Regular status checks of all services
+- **📊 Metrics Collection**: Detailed performance and availability data
+- **🚨 Error Detection**: Early detection of service problems
+- **📈 Trend Analysis**: Monitoring of response times and resource consumption
+- **🔗 Service Dependencies**: Intelligent dependency checks
+
+#### Monitoring Integration:
+The HealthMonitor can be integrated with external monitoring tools such as Prometheus, Nagios, or Zabbix. The JSON API provides structured data for automated monitoring and alerting.
+
 
 ### ToDo
 
 - Enhanced multi-modal support (images, documents)
 - Integration of Websearch Function
+- Integrate OpenWebUi into Admin
+- Uses Chat Historys
 
 ## Changelog
+
+### 0.4.0
+* **Enhanced ToolServer Functionality** - Improved datapoint control with intelligent type conversion and multilingual boolean support
+* **HealthMonitor** - Comprehensive health monitoring system with HTTP endpoints for all services (Ollama, OpenWebUI, Qdrant, ToolServer, Adapter)
+* **Advanced Calculation Handling** - Complete interception of all calculation function calls with intelligent redirection to manual computation
+* **Pattern-Free Boolean Conversion** - Eliminated hardcoded keywords, using only custom configuration values from jsonCustom
+* **Intelligent ID Resolution** - Enhanced fuzzy matching for datapoint name variations with automatic short name mapping
+* **Robust Function Call Processing** - Dual-mode support for structured tool_calls and text-based function call detection
+* **Separated Permissions** - Independent read/write permissions for enhanced security (allowedDatapoints vs writeAllowedDatapoints)
 
 ### 0.3.1
 * **Enhanced Code Quality** - Improved code readability and maintainability through proper documentation
@@ -195,7 +234,7 @@ Each formatted entry includes:
 * Updated DatapointController with native i18n integration
 * Significant reduction of hardcoded server addresses and ports with reliable fallback defaults
 
-### 0.2.0 (🆕 Major Update)
+### 0.2.0
 * **OpenWebUI Tool Server Integration** - RAG (Retrieval Augmented Generation) functionality directly in OpenWebUI chat
 * **Advanced Configuration Interface** - Dedicated Tool Server configuration tab with all necessary settings
 * **Singleton Architecture** - Prevents multiple Tool Server instances and ensures stable operation
