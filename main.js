@@ -585,7 +585,7 @@ class ollama extends utils.Adapter {
       const qdrantUrl = `http://${this.config.vectorDbIp}:${this.config.vectorDbPort}`;
       const collectionName =
         this.config.vectorDbCollection || "iobroker_datapoints";
-      
+
       const retentionConfig = {
         retentionEnabled: this.config.retentionEnabled,
         retentionDays: this.config.retentionDays || 30,
