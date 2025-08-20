@@ -119,6 +119,7 @@ class ollama extends utils.Adapter {
       // Test OpenWebUI connection
       let openWebUIAvailable = false;
       try {
+        this.log.info(`[OpenWebUI] Testing connection to ${this._serverUrlBase}`);
         const openWebUIClient = this._httpClient.getOpenWebUI(
           this.config.openWebUIApiKey,
         );
@@ -128,15 +129,22 @@ class ollama extends utils.Adapter {
             headers: this.config.openWebUIApiKey
               ? { Authorization: `Bearer ${this.config.openWebUIApiKey}` }
               : {},
-            timeout: 5000,
+            timeout: 10000,
           },
         );
         openWebUIAvailable = response.status === 200;
         if (openWebUIAvailable) {
-          this.log.info(`[OpenWebUI] Connection successful`);
+          this.log.info(`[OpenWebUI] Connection successful to ${this._serverUrlBase}`);
+          
+          // Log available models for debugging
+          if (response.data?.data) {
+            const models = response.data.data.map(m => m.id);
+            this.log.info(`[OpenWebUI] Available models: ${models.join(", ")}`);
+          }
         }
       } catch (error) {
-        this.log.error(`[OpenWebUI] Connection test failed: ${error.message}`);
+        this.log.error(`[OpenWebUI] Connection test failed to ${this._serverUrlBase}: ${error.message}`);
+        this.log.error(`[OpenWebUI] Please verify that OpenWebUI is running on IP ${this.config.openWebUIIp} port ${this.config.openWebUIPort}`);
       }
 
       // Test direct Ollama connection
