@@ -687,6 +687,11 @@ class ollama extends utils.Adapter {
 
       // Clean up resources
       if (this.ollamaClient) {
+        // Clean up ModelManager
+        if (this.ollamaClient.modelManager) {
+          this.ollamaClient.modelManager.shutdown();
+        }
+
         // Allow any pending operations to complete
         this.ollamaClient.stopMonitor(this);
       }

@@ -166,44 +166,6 @@ Each formatted entry includes:
 - Formatted text for embedding
 - Location and description metadata
 
-### 🏥 HealthMonitor
-
-The integrated **HealthMonitor** is a comprehensive monitoring system that continuously monitors the health of all critical services and provides detailed status information. It offers both HTTP endpoints for external monitoring tools and internal monitoring functions.
-
-#### Monitored Services:
-- **Ollama Server**: Connection status, available models, response times
-- **OpenWebUI**: API availability, authentication, version
-- **Qdrant Vector Database**: Connection, collections, memory usage
-- **Tool Server**: API endpoints, functionality, port status
-- **Adapter**: Runtime, memory, CPU usage
-
-#### HTTP Endpoints:
-```
-GET /health           - Overall status of all services
-GET /health/ollama    - Detailed Ollama status
-GET /health/openwebui - OpenWebUI health data
-GET /health/vectordb  - Vector Database status  
-GET /health/toolserver- Tool Server metrics
-GET /health/adapter   - Adapter system data
-```
-
-#### Configuration:
-- **Enable Health Monitoring**: Enables continuous monitoring
-- **Health Server Host**: Host interface (default: `127.0.0.1`)
-- **Health Server Port**: Port for HTTP endpoints (default: `9098`)
-- **Check Interval**: Monitoring interval in ms (default: `30000`)
-
-#### Automatic Functions:
-- **🔄 Periodic Checks**: Regular status checks of all services
-- **📊 Metrics Collection**: Detailed performance and availability data
-- **🚨 Error Detection**: Early detection of service problems
-- **📈 Trend Analysis**: Monitoring of response times and resource consumption
-- **🔗 Service Dependencies**: Intelligent dependency checks
-
-#### Monitoring Integration:
-The HealthMonitor can be integrated with external monitoring tools such as Prometheus, Nagios, or Zabbix. The JSON API provides structured data for automated monitoring and alerting.
-
-
 ### ToDo
 
 - Enhanced multi-modal support (images, documents)
@@ -215,7 +177,6 @@ The HealthMonitor can be integrated with external monitoring tools such as Prome
 
 ### 0.4.0
 * **Enhanced ToolServer Functionality** - Improved datapoint control with intelligent type conversion and multilingual boolean support
-* **HealthMonitor** - Comprehensive health monitoring system with HTTP endpoints for all services (Ollama, OpenWebUI, Qdrant, ToolServer, Adapter)
 * **Advanced Calculation Handling** - Complete interception of all calculation function calls with intelligent redirection to manual computation
 * **Pattern-Free Boolean Conversion** - Eliminated hardcoded keywords, using only custom configuration values from jsonCustom
 * **Intelligent ID Resolution** - Enhanced fuzzy matching for datapoint name variations with automatic short name mapping
