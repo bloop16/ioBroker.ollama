@@ -53,6 +53,8 @@ class ollama extends utils.Adapter {
         this.log.error(
           "[Adapter] Configuration validation failed. Adapter will not start.",
         );
+        await this.setConnected(false);
+        this.terminate ? this.terminate(11) : process.exit(11);
         return;
       }
 
@@ -175,7 +177,11 @@ class ollama extends utils.Adapter {
           this.log.error(`Vector database not available: ${err.message}`);
           if (!openWebUIAvailable) {
             // Neither OpenWebUI nor Vector DB available
+            this.log.error(
+              "[Connection] Neither OpenWebUI nor Vector DB available - stopping adapter",
+            );
             await this.setConnected(false);
+            this.terminate ? this.terminate(12) : process.exit(12);
             return;
           }
         }
@@ -255,10 +261,11 @@ class ollama extends utils.Adapter {
           this.log.debug("[ToolServer] ToolServer disabled in configuration");
         }
       } else {
-        await this.setConnected(false);
         this.log.error(
-          "[Connection] Ollama connection failed or no models available",
+          "[Connection] Ollama connection failed or no models available - stopping adapter",
         );
+        await this.setConnected(false);
+        this.terminate ? this.terminate(13) : process.exit(13);
         return;
       }
 
@@ -282,7 +289,12 @@ class ollama extends utils.Adapter {
       this.startRetentionCleanupTimer();
     } catch (err) {
       this.log.error(`Error in onReady: ${err.message}`);
+      this.log.error(`Stack trace: ${err.stack}`);
       await this.setConnected(false);
+      
+      // Terminate adapter to prevent restart loops
+      this.terminate ? this.terminate(11) : process.exit(11);
+      return;
     }
   }
 
