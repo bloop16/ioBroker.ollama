@@ -336,6 +336,17 @@ class ollama extends utils.Adapter {
       }
       // Check if this is an embedding enabled datapoint
       if (this._enabledDatapoints && this._enabledDatapoints.has(id)) {
+        // Skip processing if this is a state set by our own adapter (feedback loop prevention)
+        if (
+          state.from &&
+          state.from.startsWith(`system.adapter.${this.namespace}`)
+        ) {
+          this.log.debug(
+            `[VectorDB] Skipping state change from own adapter for ${id}: ${state.val}`,
+          );
+          return;
+        }
+
         this.log.debug(
           `[VectorDB] State change for datapoint ${id}: ${state.val}`,
         );
