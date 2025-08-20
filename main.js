@@ -291,7 +291,7 @@ class ollama extends utils.Adapter {
       this.log.error(`Error in onReady: ${err.message}`);
       this.log.error(`Stack trace: ${err.stack}`);
       await this.setConnected(false);
-      
+
       // Terminate adapter to prevent restart loops
       this.terminate ? this.terminate(11) : process.exit(11);
       return;
