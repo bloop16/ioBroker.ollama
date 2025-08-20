@@ -203,62 +203,10 @@ class ollama extends utils.Adapter {
         );
 
         // Start ToolServer now when everything is ready
-        if (this.config.enableToolServer === true) {
-          try {
-            this.log.info("[ToolServer] Starting ToolServer...");
-            this.toolServer = new ToolServer(
-              this.config,
-              this.log,
-              this._enabledDatapoints,
-              this.datapointController,
-              this,
-            );
-            const started = await this.toolServer.start();
-
-            if (started) {
-              this.log.info("[ToolServer] ToolServer started successfully");
-
-              // Configure DatapointController with QdrantClient for enhanced resolution
-              if (this.toolServer.qdrantClient) {
-                this.log.info(
-                  "[DatapointController] Vector database integration enabled for enhanced datapoint resolution",
-                );
-                // Update DatapointController with QdrantClient access
-                this.datapointController.qdrantClient =
-                  this.toolServer.qdrantClient;
-                this.datapointController.config = this.config;
-              }
-
-              // Update OllamaClient with actual ToolServer URL using configured host
-              const actualPort = this.toolServer.getPort();
-              const toolServerHost = this.config.toolServerHost || "127.0.0.1";
-              const toolServerUrl = `http://${toolServerHost}:${actualPort}`;
-              this.ollamaClient.setToolServerUrl(toolServerUrl);
-              this.log.info(
-                `[ToolServer] OllamaClient configured to use ToolServer at ${toolServerUrl}`,
-              );
-
-              this.log.info(
-                "[ToolServer] Function calling tools configured for smart home control",
-              );
-            } else {
-              this.log.warn(
-                "[ToolServer] ToolServer could not be started - continuing without tool functionality",
-              );
-            }
-          } catch (error) {
-            if (error.message.includes("already running")) {
-              this.log.warn(
-                "[ToolServer] ToolServer already running - skipping duplicate instance",
-              );
-            } else {
-              this.log.error(
-                `[ToolServer] Error starting ToolServer: ${error.message}`,
-              );
-            }
-          }
-        } else {
+        if (this.config.enableToolServer !== true) {
           this.log.debug("[ToolServer] ToolServer disabled in configuration");
+        } else {
+          await this._initializeToolServer();
         }
       } else {
         this.log.error(
@@ -305,11 +253,11 @@ class ollama extends utils.Adapter {
 
     try {
       // Handle vector database cleanup button
-      if (
+      const isVectorDbCleanupButton =
         id === `${this.namespace}.vectordb.cleanup` &&
         state.val === true &&
-        !state.ack
-      ) {
+        !state.ack;
+      if (isVectorDbCleanupButton) {
         this.log.info(
           "[VectorDB] Starting complete cleanup (duplicates + disabled datapoints)...",
         );
@@ -337,10 +285,10 @@ class ollama extends utils.Adapter {
       // Check if this is an embedding enabled datapoint
       if (this._enabledDatapoints && this._enabledDatapoints.has(id)) {
         // Skip processing if this is a state set by our own adapter (feedback loop prevention)
-        if (
+        const isOwnAdapterChange =
           state.from &&
-          state.from.startsWith(`system.adapter.${this.namespace}`)
-        ) {
+          state.from.startsWith(`system.adapter.${this.namespace}`);
+        if (isOwnAdapterChange) {
           this.log.debug(
             `[VectorDB] Skipping state change from own adapter for ${id}: ${state.val}`,
           );
@@ -365,14 +313,14 @@ class ollama extends utils.Adapter {
       }
 
       // Handle chat message inputs
-      if (
+      const isChatMessageInput =
         id.startsWith(`${this.namespace}.models.`) &&
         id.endsWith(`.messages.content`) &&
         Boolean(state.val) &&
         !state.ack &&
-        this.ollamaClient
-      ) {
-        await this.ollamaClient.processStateBasedChatMessage(id, state, this);
+        this.ollamaClient;
+      if (isChatMessageInput) {
+        await this.ollamaClient?.processStateBasedChatMessage(id, state, this);
       }
     } catch (error) {
       this.log.error(`Error in onStateChange for ${id}: ${error.message}`);
@@ -456,6 +404,65 @@ class ollama extends utils.Adapter {
       }
     } catch (error) {
       this.log.error(`Error in onObjectChange for ${id}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Initialize ToolServer with error handling
+   *
+   */
+  async _initializeToolServer() {
+    try {
+      this.log.info("[ToolServer] Starting ToolServer...");
+      this.toolServer = new ToolServer(
+        this.config,
+        this.log,
+        this._enabledDatapoints,
+        this.datapointController,
+        this,
+      );
+      const started = await this.toolServer.start();
+
+      if (started) {
+        this.log.info("[ToolServer] ToolServer started successfully");
+
+        // Configure DatapointController with QdrantClient for enhanced resolution
+        if (this.toolServer.qdrantClient && this.datapointController) {
+          this.log.info(
+            "[DatapointController] Vector database integration enabled for enhanced datapoint resolution",
+          );
+          // Update DatapointController with QdrantClient access
+          this.datapointController.qdrantClient = this.toolServer.qdrantClient;
+          this.datapointController.config = this.config;
+        }
+
+        // Update OllamaClient with actual ToolServer URL using configured host
+        const actualPort = this.toolServer.getPort();
+        const toolServerHost = this.config.toolServerHost || "127.0.0.1";
+        const toolServerUrl = `http://${toolServerHost}:${actualPort}`;
+        this.ollamaClient?.setToolServerUrl(toolServerUrl);
+        this.log.info(
+          `[ToolServer] OllamaClient configured to use ToolServer at ${toolServerUrl}`,
+        );
+
+        this.log.info(
+          "[ToolServer] Function calling tools configured for smart home control",
+        );
+      } else {
+        this.log.warn(
+          "[ToolServer] ToolServer could not be started - continuing without tool functionality",
+        );
+      }
+    } catch (error) {
+      if (error.message.includes("already running")) {
+        this.log.warn(
+          "[ToolServer] ToolServer already running - skipping duplicate instance",
+        );
+      } else {
+        this.log.error(
+          `[ToolServer] Error starting ToolServer: ${error.message}`,
+        );
+      }
     }
   }
 
