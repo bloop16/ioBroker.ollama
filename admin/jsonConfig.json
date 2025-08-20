@@ -392,69 +392,6 @@
 		  "newLine": true
 		}
 	  }
-	},
-	"HealthMonitor": {
-	  "type": "panel",
-	  "label": "Health Monitoring",
-	  "items": {
-		"healthMonitoringEnabled": {
-		  "type": "checkbox",
-		  "label": "Enable Health Monitoring",
-		  "default": true,
-		  "xs": 12,
-		  "sm": 12,
-		  "md": 6,
-		  "lg": 6,
-		  "xl": 6,
-		  "help": "Enable comprehensive health monitoring for all services with HTTP endpoints.",
-		  "newLine": true
-		},
-		"healthMonitoringHost": {
-		  "type": "text",
-		  "label": "Health Server Host",
-		  "xs": 12,
-		  "sm": 12,
-		  "md": 6,
-		  "lg": 6,
-		  "xl": 6,
-		  "default": "127.0.0.1",
-		  "help": "Host interface for the Health Monitor server to bind to.",
-		  "hidden": "data.healthMonitoringEnabled === false",
-		  "placeholder": "127.0.0.1",
-		  "newLine": true
-		},
-		"healthMonitoringPort": {
-		  "type": "number",
-		  "label": "Health Server Port",
-		  "xs": 12,
-		  "sm": 12,
-		  "md": 6,
-		  "lg": 6,
-		  "xl": 6,
-		  "default": 9098,
-		  "help": "Port for the Health Monitor server to listen on.",
-		  "hidden": "data.healthMonitoringEnabled === false",
-		  "placeholder": "9098",
-		  "newLine": true
-		},
-		"healthCheckInterval": {
-		  "type": "number",
-		  "label": "Health Check Interval (ms)",
-		  "xs": 12,
-		  "sm": 12,
-		  "md": 6,
-		  "lg": 6,
-		  "xl": 6,
-		  "min": 5000,
-		  "max": 300000,
-		  "step": 1000,
-		  "default": 30000,
-		  "help": "Interval between health checks in milliseconds (minimum: 5 seconds, maximum: 5 minutes).",
-		  "hidden": "data.healthMonitoringEnabled === false",
-		  "placeholder": "30000",
-		  "newLine": true
-		}
-	  }
 	}
   }
 }

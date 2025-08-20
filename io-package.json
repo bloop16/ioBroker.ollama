@@ -119,11 +119,7 @@
         "llmRequestTimeout": 1200,
         "embeddingTimeout": 300,
         "ragQueryTimeout": 600,
-        "progressMonitorInterval": 30,
-        "healthMonitoringEnabled": true,
-        "healthMonitoringHost": "127.0.0.1",
-        "healthMonitoringPort": 9098,
-        "healthCheckInterval": 30000
+        "progressMonitorInterval": 30
     },
     "objects": [],
     "instanceObjects": [

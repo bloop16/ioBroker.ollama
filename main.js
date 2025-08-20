@@ -8,7 +8,6 @@ const DatapointController = require("./lib/datapointController");
 const HttpClient = require("./lib/httpClient");
 const LRUCache = require("./lib/lruCache");
 const ConfigValidator = require("./lib/configValidator");
-const HealthMonitor = require("./lib/healthMonitor");
 
 class ollama extends utils.Adapter {
   constructor(options) {
@@ -25,7 +24,6 @@ class ollama extends utils.Adapter {
     this._enabledDatapoints = new Set(); // track both embedding and auto-change enabled datapoints
     this._processedStates = null; // LRU Cache for processed state changes (initialized in onReady)
     this._configValidator = null; // Configuration validator
-    this._healthMonitor = null; // Health monitoring service
     this.toolServer = null; // OpenWebUI tool server instance
     this.datapointController = null; // DatapointController for function calling
     this.on("ready", this.onReady.bind(this));
@@ -68,17 +66,6 @@ class ollama extends utils.Adapter {
       // Initialize LRU cache for processed states (prevents memory leaks)
       this._processedStates = new LRUCache(1000, 300000); // 1000 items, 5min TTL
 
-      // Initialize health monitoring
-      const healthConfig = {
-        ...this.config,
-        healthMonitoringEnabled: this.config.healthMonitoringEnabled !== false, // Default to true if not set
-        healthMonitoringPort: this.config.healthMonitoringPort || 9098,
-        healthMonitoringHost: this.config.healthMonitoringHost || "127.0.0.1",
-        healthCheckInterval: this.config.healthCheckInterval || 30000,
-      };
-      this._healthMonitor = new HealthMonitor(this.log, healthConfig);
-      await this._healthMonitor.initialize(this._httpClient);
-
       this.log.debug(
         `OpenWebUI Server: ${this.config.openWebUIIp}:${this.config.openWebUIPort}`,
       );
@@ -113,6 +100,8 @@ class ollama extends utils.Adapter {
         new Set(),
         this.log,
         this.translate.bind(this),
+        null, // QdrantClient will be set later when ToolServer starts
+        this.config, // Pass config for vector database integration
       );
       this.log.debug(
         "[DatapointController] Controller initialized successfully",
@@ -228,6 +217,17 @@ class ollama extends utils.Adapter {
 
             if (started) {
               this.log.info("[ToolServer] ToolServer started successfully");
+
+              // Configure DatapointController with QdrantClient for enhanced resolution
+              if (this.toolServer.qdrantClient) {
+                this.log.info(
+                  "[DatapointController] Vector database integration enabled for enhanced datapoint resolution",
+                );
+                // Update DatapointController with QdrantClient access
+                this.datapointController.qdrantClient =
+                  this.toolServer.qdrantClient;
+                this.datapointController.config = this.config;
+              }
 
               // Update OllamaClient with actual ToolServer URL using configured host
               const actualPort = this.toolServer.getPort();
@@ -698,15 +698,6 @@ class ollama extends utils.Adapter {
 
       if (this._processedStates) {
         this._processedStates.clear();
-      }
-
-      // Shutdown health monitoring
-      if (this._healthMonitor) {
-        this._healthMonitor.shutdown().catch((error) => {
-          this.log.error(
-            `Error shutting down health monitor: ${error.message}`,
-          );
-        });
       }
 
       this.log.info("Adapter shutdown completed");
